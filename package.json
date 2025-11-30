@@ -1,0 +1,29 @@
+{
+  "name": "dr-360",
+  "version": "1.0.0",
+  "description": "DR 360° - Dodge Recian. Um player de vídeo 360 graus imersivo com Head Tracking e modo VR",
+  "main": "index.tsx",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^r128",
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0",
+    "tailwindcss": "^3.3.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["360", "video", "vr", "three.js", "react"],
+  "author": "Dodge Recian",
+  "license": "MIT"
+}
