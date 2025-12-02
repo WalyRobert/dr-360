@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef,} from 'react';
 
 const Video360Viewer: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
