@@ -3,7 +3,6 @@
 import React, { useState, useRef,} from 'react';
 
 const Video360Viewer: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [isHeadTrackingEnabled, setIsHeadTrackingEnabled] = useState(false);
   const [isVRMode, setIsVRMode] = useState(false);
