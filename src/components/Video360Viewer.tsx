@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useStat } from 'react';
+import React, { useState } from 'react';
 
 const Video360Viewer: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState<string>('');
