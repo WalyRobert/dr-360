@@ -807,24 +807,6 @@ Ponto de verificação
 Usuário
 flag
 Restaurado de
-Code assistant changes for: crie um botão para as funções de zoom in e zoom out da tela
-lightbulb_tips
-Sugestões
-Faça alterações, adicione novos recursos, peça qualquer coisa.
-segment
-App.tsx
-folder
-componentes
-code
-index.html
-segment
-index.tsx
-data_object
-metadata.json
-766767768769770771772773774775776777778779780781782783784785786787788789790791792793794795796797798
-        </div>
-      )}
-    </div>
   );
 }
 5export default function Video360Viewer ( ) {    
