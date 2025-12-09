@@ -1,31 +1,20 @@
-# DR 360° - Dodge Recian
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-Um player de vídeo 360 graus imersivo e de alta performance com suporte a realidade virtual, rastreamento de cabeça e funções avançadas.
+# Run and deploy your AI Studio app
 
-## Features
+This contains everything you need to run your app locally.
 
-- 🌈 Visualização de védeos 360° em formato equiretangular
-- 👴 Head Tracking com sensores do dispositivo (acelerômetro + giroscópio)
-- 🔍 Modo VR estereoscrópico para óculos de realidade virtual
-- 🌟 Tema pré-instalado com design Preto & Dourado
-- ⏯️ Controles de Play/Pause, Volume e Barra de Progresso
-- 🔁 Botão de Loop para reprodução repetida
-- 💘 Download de vídeos 360°
-- 🔊 Suporte a vide os locais e via URL remota
+View your app in AI Studio: https://ai.studio/apps/drive/1ppzUP5N4YWVrOb-qR9WLvQYhO7hm0uxD
 
-## Tecnologia
+## Run Locally
 
-- React
-- Three.js para renderização 3D
-- DeviceOrientation API para Head Tracking
-- Tailwind CSS para estilização
+**Prerequisites:**  Node.js
 
-## Deploy
 
-Este projeto está atualmente deployado no Vercel:
-
-https://dr-360.vercel.app
-
----
-
-**DR 360° - Developed by Dodge Recian**
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
