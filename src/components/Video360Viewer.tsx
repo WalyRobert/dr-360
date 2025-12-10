@@ -169,7 +169,7 @@ export default function Video360Viewer() {
 
   // JSX return (igual ao seu, com error display se necessário)
   return (
-    <div ref={wrapperRef} className="relative w-full h-full" onMouseMove={handleUserActivity} onTouchMove={handleUserActivity}>
+    <div ref={wrapperRef} className="relative w-full h-full">
       {error && <div className="absolute top-0 left-0 p-4 bg-red-500 text-white">{error}</div>}
       {/* ... resto da UI igual ao seu código */}
     </div>
