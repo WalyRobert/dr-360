@@ -116,6 +116,7 @@ export default function Video360Viewer() {
      
       if (!ctxRef.current || !canvasRef.current || !videoRef.current) return;
       if (videoRef.current.readyState < 2) return;
+          console.log('Video pronto: ', videoRef.current?.readyState);
       const ctx = ctxRef.current;
       const canvas = canvasRef.current;
      
