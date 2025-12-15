@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Play, Pause, Volume2, VolumeX, Maximize, Upload, Download, Repeat, Glasses, Smartphone, FileVideo, ScanEye, Gauge, ZoomIn, ZoomOut } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Upload, Download, Repeat, Glasses, Smartphone, FileVideo, Gauge, ZoomIn, ZoomOut } from 'lucide-react';
 
 export default function Video360Viewer() {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -19,7 +19,6 @@ export default function Video360Viewer() {
   const [isLooping, setIsLooping] = useState(true);
   const [isHeadTracking, setIsHeadTracking] = useState(false);
   const [isVR, setIsVR] = useState(false);
-  const isVRRef = useRef(false);
   const [viewMode, setViewMode] = useState<'360' | '180' | '120'>('360');
   const [playbackRate, setPlaybackRate] = useState(1);
   const [fov, setFov] = useState(75);
@@ -38,31 +37,37 @@ export default function Video360Viewer() {
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Cena
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
+    // Câmera
     const camera = new THREE.PerspectiveCamera(fov, containerRef.current.clientWidth / containerRef.current.clientHeight, 0.1, 1000);
     camera.position.set(0, 0, 0.1);
     cameraRef.current = camera;
 
+    // Stereo para VR
     const stereo = new THREE.StereoCamera();
     stereo.eyeSep = 0.064;
     stereoRef.current = stereo;
 
+    // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
+    // Vídeo
     const video = document.createElement('video');
     video.crossOrigin = 'anonymous';
-    video.loop = true;
+    video.loop = isLooping;
     video.muted = isMuted;
     videoRef.current = video;
 
-    const geometry = new THREE.SphereGeometry(250, 64, 64);
-    geometry.scale(-1, 1, 1);
+    // Geometria da esfera (para 360°)
+    let geometry = new THREE.SphereGeometry(250, 64, 64);
+    geometry.scale(-1, 1, 1); // Inverte para vista interna
 
     const texture = new THREE.VideoTexture(video);
     texture.minFilter = THREE.LinearFilter;
@@ -74,24 +79,74 @@ export default function Video360Viewer() {
     scene.add(sphere);
     sphereRef.current = sphere;
 
-    // Adicione aqui os eventos de mouse, deviceorientation, animate, etc. (complete do seu código original)
+    // Controles de mouse
+    const onMouseDown = (e: MouseEvent) => {
+      if (isHeadTracking) return;
+      mouseRef.current.isDown = true;
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
+      lastInteractionTimeRef.current = Date.now();
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (isHeadTracking || !mouseRef.current.isDown) return;
+      const deltaX = e.clientX - mouseRef.current.x;
+      const deltaY = e.clientY - mouseRef.current.y;
+      rotationRef.current.lon += deltaX * 0.1;
+      rotationRef.current.lat -= deltaY * 0.1;
+      rotationRef.current.lat = Math.max(-85, Math.min(85, rotationRef.current.lat));
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
+    };
+
+    const onMouseUp = () => {
+      mouseRef.current.isDown = false;
+    };
+
+    renderer.domElement.addEventListener('mousedown', onMouseDown);
+    renderer.domElement.addEventListener('mousemove', onMouseMove);
+    renderer.domElement.addEventListener('mouseup', onMouseUp);
+
+    // Loop de animação
+    const animate = () => {
+      requestAnimationFrame(animate);
+      if (cameraRef.current && sceneRef.current && rendererRef.current) {
+        rotationRef.current.phi = THREE.MathUtils.degToRad(90 - rotationRef.current.lat);
+        rotationRef.current.theta = THREE.MathUtils.degToRad(rotationRef.current.lon);
+        const x = Math.sin(rotationRef.current.phi) * Math.cos(rotationRef.current.theta);
+        const y = Math.cos(rotationRef.current.phi);
+        const z = Math.sin(rotationRef.current.phi) * Math.sin(rotationRef.current.theta);
+        cameraRef.current.lookAt(x, y, z);
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
+    };
+    animate();
+
+    // Resize
+    const handleResize = () => {
+      if (containerRef.current && cameraRef.current && rendererRef.current) {
+        cameraRef.current.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
+        cameraRef.current.updateProjectionMatrix();
+        rendererRef.current.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+      }
+    };
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      if (containerRef.current && renderer.domElement) {
-        containerRef.current.removeChild(renderer.domElement);
+      window.removeEventListener('resize', handleResize);
+      if (containerRef.current && rendererRef.current) {
+        containerRef.current.removeChild(rendererRef.current.domElement);
       }
-      renderer.dispose();
-      scene.dispose();
-      // Limpeza de outros recursos
+      rendererRef.current?.dispose();
     };
-  }, []); // Dependências vazias para rodar só uma vez
+  }, [fov, isHeadTracking, isLooping, isMuted]);
 
-  // Adicione aqui as funções como togglePlay, toggleMute, handleFileChange, etc. (do seu código original, corrigindo classes para Tailwind, ex: 'inline text-gray-200' em vez de 'd-inline gray-200')
+  // Funções de controle (togglePlay, etc.) - adicione do seu código original aqui
 
   return (
     <div ref={wrapperRef} className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
-      {/* Adicione o resto do JSX com controles, corrigindo classes e fechando tags */}
+      {/* Controles UI - adicione o JSX dos botões aqui */}
     </div>
   );
 }
