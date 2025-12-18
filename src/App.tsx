@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './components/LandingPage';
 import Video360Viewer from './components/Video360Viewer';
 
 const App: React.FC = () => {
   return (
-    <div className="w-full h-screen bg-gray-900 text-white overflow-hidden">
-      <Video360Viewer />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/player" element={<Video360Viewer />} />
+      </Routes>
+    </Router>
   );
 };
 
