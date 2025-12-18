@@ -1,9 +1,10 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 
-const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
-  
+interface LandingPageProps {
+  onNavigate: () => void;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   return (
     <div style={{
       width: '100%',
@@ -77,7 +78,7 @@ const LandingPage: React.FC = () => {
           Experimente uma tecnologia revolucionária de vídeo imersivo em 360 graus
         </p>
         <button
-          onClick={() => navigate('/player')}
+          onClick={onNavigate}
           style={{
             padding: '15px 50px',
             fontSize: '1.2rem',
