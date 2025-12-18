@@ -1,195 +1,306 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { Play, Pause, Volume2, VolumeX, Maximize, Upload, Download, Repeat, Gauge, ZoomIn, ZoomOut } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { ViewMode, VideoState, PlayerSettings, QualitySettings } from '../types';
+import Scene from './Scene';
+import Controls from './Controls';
+import { Play } from 'lucide-react';
 
-export default function Video360Viewer() {
+
+interface VideoPlayerProps {
+  src: string;
+  fileName: string;
+  onBack: () => void;
+  onFileChange: (file: File) => void;
+}
+
+
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFileChange }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const activityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [videoUrl, setVideoUrl] = useState('');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isLooping, setIsLooping] = useState(true);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [showControls, setShowControls] = useState(true);
 
-  const mouseRef = useRef({ isDown: false, prevX: 0, prevY: 0 });
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
+  const [videoState, setVideoState] = useState<VideoState>({
+    isPlaying: false,
+    progress: 0,
+    currentTime: 0,
+    duration: 0,
+    volume: 1,
+    isMuted: true,
+    playbackRate: 1,
+    isLooping: false,
+    isBuffering: true,
+  });
 
-  useEffect(() => {
-    if (!containerRef.current) return;
 
-    // Cena, câmera e renderer
-    const scene = new THREE.Scene();
-    sceneRef.current = scene;
+  const [settings, setSettings] = useState<PlayerSettings>({
+    viewMode: ViewMode.Mode360,
+    isVR: false,
+    zoom: 75,
+    headTracking: false,
+  });
 
-    const camera = new THREE.PerspectiveCamera(75, containerRef.current.clientWidth / containerRef.current.clientHeight, 1, 100);
-    cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-    containerRef.current.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
+  const [qualitySettings, setQualitySettings] = useState<QualitySettings>({
+    brightness: 0,
+    contrast: 0,
+    saturation: 0,
+    sharpness: 0,
+    resolution: 'auto',
+    colorProfile: 'standard',
+  });
 
-    // Eventos de mouse para rotação 360°
-    const onMouseDown = (e: MouseEvent) => {
-      mouseRef.current.isDown = true;
-      mouseRef.current.prevX = e.clientX;
-      mouseRef.current.prevY = e.clientY;
-    };
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (!mouseRef.current.isDown) return;
-      const deltaX = (e.clientX - mouseRef.current.prevX) / 100;
-      const deltaY = (e.clientY - mouseRef.current.prevY) / 100;
-      if (cameraRef.current) {
-        cameraRef.current.rotateY(-deltaX);
-        cameraRef.current.rotateX(-deltaY);
-      }
-      mouseRef.current.prevX = e.clientX;
-      mouseRef.current.prevY = e.clientY;
-    };
+  const [uiVisible, setUiVisible] = useState(true);
+  const [needsInteraction, setNeedsInteraction] = useState(false);
+  const [textureKey, setTextureKey] = useState(0);
 
-    const onMouseUp = () => {
-      mouseRef.current.isDown = false;
-    };
 
-    renderer.domElement.addEventListener('mousedown', onMouseDown);
-    renderer.domElement.addEventListener('mousemove', onMouseMove);
-    renderer.domElement.addEventListener('mouseup', onMouseUp);
+  const dpr = useMemo(() => {
+    if (typeof window === 'undefined') return 1;
+    switch (qualitySettings.resolution) {
+      case '720p': return 1;
+      case '1080p': return 1.5;
+      case '4k': return Math.min(window.devicePixelRatio, 2.5);
+      case 'auto': default: return window.devicePixelRatio;
+    }
+  }, [qualitySettings.resolution]);
 
-    // Zoom com roda do mouse
-    const onWheel = (e: WheelEvent) => {
-      if (cameraRef.current) {
-        cameraRef.current.fov = Math.max(10, Math.min(120, cameraRef.current.fov + e.deltaY / 10));
-        cameraRef.current.updateProjectionMatrix();
-      }
-    };
-    renderer.domElement.addEventListener('wheel', onWheel);
 
-    // Animação
-    const animate = () => {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    };
-    animate();
+  const showUI = useCallback(() => {
+    setUiVisible(true);
+    if (activityTimerRef.current) clearTimeout(activityTimerRef.current);
+    activityTimerRef.current = setTimeout(() => {
+      if (videoState.isPlaying) setUiVisible(false);
+    }, 3000);
+  }, [videoState.isPlaying]);
 
-    // Resize
-    const handleResize = () => {
-      if (containerRef.current && cameraRef.current && rendererRef.current) {
-        cameraRef.current.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
-        cameraRef.current.updateProjectionMatrix();
-        rendererRef.current.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-      }
-    };
-    window.addEventListener('resize', handleResize);
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (containerRef.current && rendererRef.current) {
-        containerRef.current.removeChild(rendererRef.current.domElement);
-      }
-      rendererRef.current?.dispose();
-    };
+  const attemptPlay = useCallback(async () => {
+    if (!videoRef.current) return;
+    try {
+      await videoRef.current.play();
+      setNeedsInteraction(false);
+      setTextureKey(prev => prev + 1);
+    } catch (err) {
+      console.warn("Autoplay bloqueado. Aguardando interação.", err);
+      setNeedsInteraction(true);
+    }
   }, []);
 
-  // Atualiza vídeo quando URL mudar
+
   useEffect(() => {
-    if (videoUrl && sceneRef.current) {
-      const video = document.createElement('video');
-      video.src = videoUrl;
-      video.loop = isLooping;
-      video.muted = isMuted;
-      video.playbackRate = playbackRate;
-      video.crossOrigin = 'anonymous';
-      videoRef.current = video;
+    const video = videoRef.current;
+    if (!video) return;
 
-      const texture = new THREE.VideoTexture(video);
-      const geometry = new THREE.SphereGeometry(15, 32, 16);
-      const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
-      const mesh = new THREE.Mesh(geometry, material);
-      sceneRef.current.add(mesh);
 
-      video.addEventListener('loadedmetadata', () => {
-        setDuration(video.duration);
-      });
+    video.src = src;
+    video.load();
 
-      video.addEventListener('timeupdate', () => {
-        setProgress((video.currentTime / video.duration) * 100);
-      });
 
-      if (isPlaying) video.play();
-    }
-  }, [videoUrl, isLooping, isMuted, playbackRate, isPlaying]);
+    const onLoadedMetadata = () => {
+      setVideoState(prev => ({ ...prev, duration: video.duration }));
+      attemptPlay();
+    };
+    
+    const onTimeUpdate = () => setVideoState(prev => ({ 
+      ...prev, 
+      currentTime: video.currentTime, 
+      progress: (video.currentTime / video.duration) * 100 
+    }));
+    const onPlay = () => {
+      setVideoState(prev => ({ ...prev, isPlaying: true }));
+      setNeedsInteraction(false);
+    };
+    const onPause = () => setVideoState(prev => ({ ...prev, isPlaying: false }));
+    const onWaiting = () => setVideoState(prev => ({ ...prev, isBuffering: true }));
+    const onCanPlay = () => setVideoState(prev => ({ ...prev, isBuffering: false }));
+
+
+    video.addEventListener('loadedmetadata', onLoadedMetadata);
+    video.addEventListener('timeupdate', onTimeUpdate);
+    video.addEventListener('play', onPlay);
+    video.addEventListener('pause', onPause);
+    video.addEventListener('waiting', onWaiting);
+    video.addEventListener('canplay', onCanPlay);
+
+
+    return () => {
+      video.removeEventListener('loadedmetadata', onLoadedMetadata);
+      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('play', onPlay);
+      video.removeEventListener('pause', onPause);
+      video.removeEventListener('waiting', onWaiting);
+      video.removeEventListener('canplay', onCanPlay);
+    };
+  }, [src, attemptPlay]);
+
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const handleInteraction = () => showUI();
+    container.addEventListener('mousemove', handleInteraction);
+    container.addEventListener('touchstart', handleInteraction);
+    container.addEventListener('click', handleInteraction);
+    showUI();
+    return () => {
+      container.removeEventListener('mousemove', handleInteraction);
+      container.removeEventListener('touchstart', handleInteraction);
+      container.removeEventListener('click', handleInteraction);
+      if (activityTimerRef.current) clearTimeout(activityTimerRef.current);
+    };
+  }, [showUI]);
+
 
   const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) videoRef.current.pause();
-      else videoRef.current.play();
-      setIsPlaying(!isPlaying);
+    if (!videoRef.current) return;
+    if (videoState.isPlaying) {
+      videoRef.current.pause();
+    } else {
+      attemptPlay();
     }
   };
 
-  const toggleMute = () => {
-    if (videoRef.current) videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
+
+  const handleSeek = (value: number) => { 
+    if (videoRef.current) { 
+      videoRef.current.currentTime = (value / 100) * videoState.duration; 
+      setVideoState(prev => ({ ...prev, progress: value })); 
+    }
   };
 
-  const toggleLoop = () => {
-    if (videoRef.current) videoRef.current.loop = !isLooping;
-    setIsLooping(!isLooping);
+
+  const toggleMute = () => { 
+    if (videoRef.current) { 
+      videoRef.current.muted = !videoState.isMuted; 
+      setVideoState(prev => ({ ...prev, isMuted: !prev.isMuted })); 
+    }
   };
 
-  const changePlaybackRate = () => {
-    const rates = [0.5, 1, 1.5, 2];
-    const nextRate = rates[(rates.indexOf(playbackRate) + 1) % rates.length];
-    if (videoRef.current) videoRef.current.playbackRate = nextRate;
-    setPlaybackRate(nextRate);
+
+  const handleVolume = (value: number) => { 
+    if (videoRef.current) { 
+      videoRef.current.volume = value; 
+      videoRef.current.muted = value === 0; 
+      setVideoState(prev => ({ ...prev, volume: value, isMuted: value === 0 })); 
+    }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) setVideoUrl(URL.createObjectURL(file));
+
+  const changeSpeed = () => { 
+    if (videoRef.current) { 
+      const speeds = [0.5, 1, 1.5, 2]; 
+      const next = speeds[(speeds.indexOf(videoState.playbackRate) + 1) % speeds.length]; 
+      videoRef.current.playbackRate = next; 
+      setVideoState(prev => ({ ...prev, playbackRate: next })); 
+    }
   };
 
-  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = (parseFloat(e.target.value) / 100) * duration;
-    if (videoRef.current) videoRef.current.currentTime = newTime;
-    setProgress(parseFloat(e.target.value));
+
+  const toggleLoop = () => { 
+    if (videoRef.current) { 
+      videoRef.current.loop = !videoState.isLooping; 
+      setVideoState(prev => ({ ...prev, isLooping: !prev.isLooping })); 
+    }
   };
 
-  // Auto-esconder controles
-  useEffect(() => {
-    const timer = setTimeout(() => setShowControls(false), 3000);
-    return () => clearTimeout(timer);
-  }, [showControls]);
+
+  const toggleVR = () => setSettings(prev => ({ ...prev, isVR: !prev.isVR, headTracking: !prev.isVR }));
+  
+  const requestHeadTracking = async () => { 
+    if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') { 
+      try { 
+        if (await (DeviceOrientationEvent as any).requestPermission() === 'granted') 
+          setSettings(p => ({ ...p, headTracking: !p.headTracking })); 
+      } catch (e) { console.error(e); } 
+    } else { 
+      setSettings(p => ({ ...p, headTracking: !p.headTracking })); 
+    }
+  };
+
+
+  const handleZoom = (dir: 'in' | 'out') => setSettings(p => ({ ...p, zoom: dir === 'in' ? Math.max(30, p.zoom - 10) : Math.min(110, p.zoom + 10) }));
+  
+  const handleDownload = () => { 
+    const a = document.createElement('a'); 
+    a.href = src; 
+    a.download = fileName || 'video-360.mp4'; 
+    document.body.appendChild(a); 
+    a.click(); 
+    document.body.removeChild(a); 
+  };
+
 
   return (
-    <div className="relative w-full h-full" onMouseMove={() => setShowControls(true)}>
-      <div ref={containerRef} className="w-full h-full" />
-      {!videoUrl && (
-        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black/80">
-          <button onClick={() => fileInputRef.current?.click()} className="bg-[#D4AF37] text-black p-4 rounded-xl">
-            <Upload size={24} /> Carregar Vídeo 360°
+    <div ref={containerRef} className="relative w-full h-full bg-black">
+      <video 
+        ref={videoRef} 
+        className="hidden" 
+        crossOrigin="anonymous" 
+        playsInline 
+        muted={videoState.isMuted}
+        loop={videoState.isLooping} 
+      />
+      
+      <Canvas 
+        className="w-full h-full cursor-move"
+        dpr={dpr}
+        gl={{ 
+          antialias: true, 
+          powerPreference: "high-performance",
+          alpha: false 
+        }}
+      >
+        <Scene 
+          key={`scene-${textureKey}`}
+          videoElement={videoRef.current} 
+          viewMode={settings.viewMode}
+          zoom={settings.zoom}
+          headTracking={settings.headTracking}
+          isVR={settings.isVR}
+          autoCenter={true}
+          quality={qualitySettings}
+        />
+      </Canvas>
+
+
+      {needsInteraction && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-md transition-all">
+          <button 
+            onClick={togglePlay}
+            className="p-10 bg-[#D4AF37] text-white rounded-full shadow-[0_0_50px_rgba(212,175,55,0.4)] hover:scale-110 active:scale-95 transition-all flex items-center justify-center"
+          >
+            <Play size={56} fill="white" />
           </button>
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="video/*" className="hidden" />
         </div>
       )}
-      {videoUrl && showControls && (
-        <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-between">
-          <button onClick={togglePlay}>{isPlaying ? <Pause size={24} /> : <Play size={24} />}</button>
-          <button onClick={toggleMute}>{isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}</button>
-          <button onClick={toggleLoop}><Repeat size={24} /></button>
-          <button onClick={changePlaybackRate}><Gauge size={24} /> {playbackRate}x</button>
-          <input type="range" value={progress} onChange={handleProgressChange} className="flex-1 mx-4" />
-          <button onClick={() => document.documentElement.requestFullscreen()}><Maximize size={24} /></button>
-        </div>
-      )}
+
+
+      <Controls 
+        visible={uiVisible}
+        state={videoState}
+        settings={settings}
+        quality={qualitySettings}
+        fileName={fileName}
+        onPlayPause={togglePlay}
+        onSeek={handleSeek}
+        onMute={toggleMute}
+        onVolume={handleVolume}
+        onSpeedChange={changeSpeed}
+        onLoopToggle={toggleLoop}
+        onVRToggle={toggleVR}
+        onViewModeChange={(mode) => setSettings(s => ({ ...s, viewMode: mode }))}
+        onHeadTrackingToggle={requestHeadTracking}
+        onZoom={handleZoom}
+        onBack={onBack}
+        onDownload={handleDownload}
+        onFileChange={onFileChange}
+        onQualityChange={setQualitySettings}
+      />
     </div>
   );
-}
+};
+
+
+export default VideoPlayer;
