@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+  
   return (
     <div style={{
       width: '100%',
@@ -35,7 +38,7 @@ const LandingPage: React.FC = () => {
         backgroundColor: '#6b5d4f',
         opacity: 0.05,
       }} />
-
+      
       {/* Main content */}
       <div style={{
         position: 'relative',
@@ -62,7 +65,7 @@ const LandingPage: React.FC = () => {
           fontWeight: 'normal',
           letterSpacing: '2px',
         }}>
-          VISUALIZACAO EM 360
+          VISUALIZAÇÃO EM 360
         </h2>
         <p style={{
           fontSize: '1.1rem',
@@ -71,10 +74,10 @@ const LandingPage: React.FC = () => {
           lineHeight: '1.6',
           marginBottom: '40px',
         }}>
-          Experimente a revolucionaria tecnologia de video imersivo em 360 graus
+          Experimente uma tecnologia revolucionária de vídeo imersivo em 360 graus
         </p>
         <button
-          onClick={() => console.log('Iniciando visualização 360°')}
+          onClick={() => navigate('/player')}
           style={{
             padding: '15px 50px',
             fontSize: '1.2rem',
@@ -98,7 +101,7 @@ const LandingPage: React.FC = () => {
             e.currentTarget.style.boxShadow = '0 4px 15px rgba(212, 175, 55, 0.3)';
           }}
         >
-          INICIAR VISUALIZACAO
+          INICIAR VISUALIZAÇÃO
         </button>
       </div>
     </div>
