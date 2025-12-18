@@ -74,7 +74,7 @@ const LandingPage: React.FC = () => {
           Experimente a revolucionaria tecnologia de video imersivo em 360 graus
         </p>
         <button
-          onClick={() => alert('Reprodutor de video em desenvolvimento')}
+          onClick={() => console.log('Iniciando visualização 360°')}
           style={{
             padding: '15px 50px',
             fontSize: '1.2rem',
