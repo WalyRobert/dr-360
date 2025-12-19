@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Scene from './Scene';
 import Controls from './Controls';
@@ -24,6 +24,15 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
   const [isVR, setIsVR] = useState(false);
   const [quality, setQuality] = useState<QualitySettings>(defaultQuality);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [canvasKey, setCanvasKey] = useState(0);
+
+  // Garante que o vídeo está pronto antes de renderizar o canvas
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCanvasKey(prev => prev + 1);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handlePlayPause = () => {
     if (videoRef.current) {
@@ -57,6 +66,19 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
       background: '#000',
       position: 'relative'
     }}>
+      {/* Video element - SEMPRE CARREGADO PRIMEIRO */}
+      <video
+        ref={videoRef}
+        style={{ display: 'none' }}
+        crossOrigin="anonymous"
+        loop
+        muted
+        autoPlay
+      >
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4" type="video/mp4" />
+        Seu navegador não suporta vídeo HTML5.
+      </video>
+
       {/* Canvas Area */}
       <div style={{
         flex: 1,
@@ -65,6 +87,7 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
         background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'
       }}>
         <Canvas
+          key={canvasKey}
           camera={{ position: [0, 0, 0.1], fov: zoom }}
           style={{ width: '100%', height: '100%' }}
           gl={{
@@ -82,20 +105,11 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
             quality={quality}
           />
         </Canvas>
-
-        {/* Hidden video element */}
-        <video
-          ref={videoRef}
-          style={{ display: 'none' }}
-          crossOrigin="anonymous"
-          loop
-          muted
-        >
-                      <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4" type="video/mp4" />
-        </video>
       </div>
 
-sPlaying={isPlaying}
+      {/* Controls Bar */}
+      <Controls
+        isPlaying={isPlaying}
         onPlayPause={handlePlayPause}
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
