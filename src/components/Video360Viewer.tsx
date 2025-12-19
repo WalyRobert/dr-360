@@ -1,89 +1,116 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import { Canvas } from '@react-three/fiber';
+import Scene from './Scene';
+import Controls from './Controls';
+import { ViewMode, QualitySettings } from '../types';
 
 interface Video360ViewerProps {
   onBack: () => void;
 }
 
+const defaultQuality: QualitySettings = {
+  brightness: 0,
+  contrast: 0,
+  saturation: 0,
+  sharpness: 0,
+  colorProfile: 'natural'
+};
+
 const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Mode360);
+  const [zoom, setZoom] = useState(75);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [headTracking, setHeadTracking] = useState(false);
+  const [isVR, setIsVR] = useState(false);
+  const [quality, setQuality] = useState<QualitySettings>(defaultQuality);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+  };
+
+  const handleZoomChange = (value: number) => {
+    setZoom(Math.max(10, Math.min(120, value)));
+  };
+
+  const handleQualityChange = (newQuality: Partial<QualitySettings>) => {
+    setQuality(prev => ({ ...prev, ...newQuality }));
+  };
+
   return (
     <div style={{
       width: '100%',
       height: '100vh',
-      background: 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)',
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-      overflow: 'hidden'
+      background: '#000',
+      position: 'relative'
     }}>
-      {/* Canvas placeholder - will be 360 player */}
+      {/* Canvas Area */}
       <div style={{
-        width: '100%',
-        height: 'calc(100% - 80px)',
-        background: 'linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#D4AF37',
-        fontSize: '1.5rem',
-        fontFamily: 'Arial, sans-serif'
+        flex: 1,
+        position: 'relative',
+        overflow: 'hidden',
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <h2 style={{ margin: '0 0 20px 0' }}>360° Video Player</h2>
-          <p style={{ color: '#aaa', fontSize: '1rem' }}>Touch or drag to rotate the view</p>
-          <p style={{ color: '#888', fontSize: '0.9rem', marginTop: '40px' }}>Three.js 360° video rendering initializing...</p>
-        </div>
-      </div>
-
-      {/* Control bar */}
-      <div style={{
-        width: '100%',
-        height: '80px',
-        background: 'rgba(0, 0, 0, 0.8)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 20px',
-        boxSizing: 'border-box',
-        borderTop: '1px solid rgba(212, 175, 55, 0.2)'
-      }}>
-        <button
-          onClick={onBack}
-          style={{
-            padding: '10px 25px',
-            background: 'rgba(212, 175, 55, 0.2)',
-            color: '#D4AF37',
-            border: '1px solid #D4AF37',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            fontSize: '0.9rem',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            const target = e.currentTarget as HTMLButtonElement;
-            target.style.background = 'rgba(212, 175, 55, 0.4)';
-          }}
-          onMouseLeave={(e) => {
-            const target = e.currentTarget as HTMLButtonElement;
-            target.style.background = 'rgba(212, 175, 55, 0.2)';
+        <Canvas
+          camera={{ position: [0, 0, 0.1], fov: zoom }}
+          style={{ width: '100%', height: '100%' }}
+          gl={{
+            antialias: true,
+            alpha: false,
+            powerPreference: 'high-performance'
           }}
         >
-          ← Voltar
-        </button>
+          <Scene
+            videoElement={videoRef.current}
+            viewMode={viewMode}
+            zoom={zoom}
+            headTracking={headTracking}
+            isVR={isVR}
+            quality={quality}
+          />
+        </Canvas>
 
-        <div style={{
-          display: 'flex',
-          gap: '15px',
-          alignItems: 'center'
-        }}>
-          <span style={{
-            color: '#aaa',
-            fontSize: '0.9rem'
-          }}>Ready for your video</span>
-        </div>
+        {/* Hidden video element */}
+        <video
+          ref={videoRef}
+          style={{ display: 'none' }}
+          crossOrigin="anonymous"
+          loop
+          muted
+        >
+          <source src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" type="video/mp4" />
+        </video>
       </div>
+
+      {/* Controls Bar */}
+      <Controls
+        isPlaying={isPlaying}
+        onPlayPause={handlePlayPause}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+        zoom={zoom}
+        onZoomChange={handleZoomChange}
+        headTracking={headTracking}
+        onHeadTrackingChange={setHeadTracking}
+        isVR={isVR}
+        onVRChange={setIsVR}
+        quality={quality}
+        onQualityChange={handleQualityChange}
+        onBack={onBack}
+      />
     </div>
   );
 };
