@@ -91,13 +91,11 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
           loop
           muted
         >
-          <source src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" type="video/mp4" />
+                      <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4" type="video/mp4" />
         </video>
       </div>
 
-      {/* Controls Bar */}
-      <Controls
-        isPlaying={isPlaying}
+sPlaying={isPlaying}
         onPlayPause={handlePlayPause}
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
