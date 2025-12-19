@@ -6,6 +6,9 @@ import Controls from './Controls';
 import { Play } from 'lucide-react';
 
 
+
+const DEFAULT_VIDEO_URL = 'https://sample-videos.com/zip/360-sweet-potato-chips.zip';
+
 interface VideoPlayerProps {
   src: string;
   fileName: string;
