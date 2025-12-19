@@ -19,19 +19,25 @@ const defaultQuality: QualitySettings = {
 const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Mode360);
   const [zoom, setZoom] = useState(75);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [headTracking, setHeadTracking] = useState(false);
   const [isVR, setIsVR] = useState(false);
   const [quality, setQuality] = useState<QualitySettings>(defaultQuality);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [canvasKey, setCanvasKey] = useState(0);
+  const [isReady, setIsReady] = useState(false);
 
-  // Garante que o vídeo está pronto antes de renderizar o canvas
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setCanvasKey(prev => prev + 1);
-    }, 100);
-    return () => clearTimeout(timer);
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleCanPlay = () => {
+      setIsReady(true);
+      setIsPlaying(true);
+      video.play().catch(err => console.log('Autoplay bloqueado:', err));
+    };
+
+    video.addEventListener('canplay', handleCanPlay);
+    return () => video.removeEventListener('canplay', handleCanPlay);
   }, []);
 
   const handlePlayPause = () => {
@@ -45,18 +51,6 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
     }
   };
 
-  const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode);
-  };
-
-  const handleZoomChange = (value: number) => {
-    setZoom(Math.max(10, Math.min(120, value)));
-  };
-
-  const handleQualityChange = (newQuality: Partial<QualitySettings>) => {
-    setQuality(prev => ({ ...prev, ...newQuality }));
-  };
-
   return (
     <div style={{
       width: '100%',
@@ -66,17 +60,15 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
       background: '#000',
       position: 'relative'
     }}>
-      {/* Video element - SEMPRE CARREGADO PRIMEIRO */}
+      {/* Video element - sempre carregado PRIMEIRO */}
       <video
         ref={videoRef}
         style={{ display: 'none' }}
         crossOrigin="anonymous"
         loop
         muted
-        autoPlay
       >
         <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4" type="video/mp4" />
-        Seu navegador não suporta vídeo HTML5.
       </video>
 
       {/* Canvas Area */}
@@ -86,43 +78,63 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
         overflow: 'hidden',
         background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'
       }}>
-        <Canvas
-          key={canvasKey}
-          camera={{ position: [0, 0, 0.1], fov: zoom }}
-          style={{ width: '100%', height: '100%' }}
-          gl={{
-            antialias: true,
-            alpha: false,
-            powerPreference: 'high-performance'
-          }}
-        >
-          <Scene
-            videoElement={videoRef.current}
-            viewMode={viewMode}
-            zoom={zoom}
-            headTracking={headTracking}
-            isVR={isVR}
-            quality={quality}
-          />
-        </Canvas>
+        {isReady && (
+          <Canvas
+            camera={{ position: [0, 0, 0.1], fov: zoom }}
+            style={{ width: '100%', height: '100%' }}
+            gl={{
+              antialias: true,
+              alpha: false,
+              powerPreference: 'high-performance'
+            }}
+          >
+            <Scene
+              videoElement={videoRef.current}
+              viewMode={viewMode}
+              zoom={zoom}
+              headTracking={headTracking}
+              isVR={isVR}
+              quality={quality}
+            />
+          </Canvas>
+        )}
+        {!isReady && (
+          <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#D4AF37',
+            fontSize: '1.5rem',
+            fontFamily: 'Arial, sans-serif'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <h2>Carregando vídeo 360°...</h2>
+              <p>Aguarde enquanto o vídeo está sendo preparado</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Controls Bar */}
-      <Controls
-        isPlaying={isPlaying}
-        onPlayPause={handlePlayPause}
-        viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
-        zoom={zoom}
-        onZoomChange={handleZoomChange}
-        headTracking={headTracking}
-        onHeadTrackingChange={setHeadTracking}
-        isVR={isVR}
-        onVRChange={setIsVR}
-        quality={quality}
-        onQualityChange={handleQualityChange}
-        onBack={onBack}
-      />
+      {isReady && (
+        <Controls
+          isPlaying={isPlaying}
+          onPlayPause={handlePlayPause}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          zoom={zoom}
+          onZoomChange={setZoom}
+          headTracking={headTracking}
+          onHeadTrackingChange={setHeadTracking}
+          isVR={isVR}
+          onVRChange={setIsVR}
+          quality={quality}
+          onQualityChange={(newQuality) => setQuality(prev => ({ ...prev, ...newQuality }))}
+          onBack={onBack}
+        />
+      )}
     </div>
   );
 };
