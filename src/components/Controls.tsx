@@ -1,4 +1,178 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
+import { Play, Pause, Volume2, VolumeX, Maximize2, Settings, ArrowLeft } from 'lucide-react';
+import { ViewMode, QualitySettings } from '../types';
+
+interface ControlsProps {
+  isPlaying: boolean;
+  onPlayPause: () => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+  zoom: number;
+  onZoomChange: (zoom: number) => void;
+  headTracking: boolean;
+  onHeadTrackingChange: (enabled: boolean) => void;
+  isVR: boolean;
+  onVRChange: (enabled: boolean) => void;
+  quality: QualitySettings;
+  onQualityChange: (quality: Partial<QualitySettings>) => void;
+  onBack: () => void;
+}
+
+const Controls: React.FC<ControlsProps> = ({
+  isPlaying,
+  onPlayPause,
+  viewMode,
+  onViewModeChange,
+  zoom,
+  onZoomChange,
+  headTracking,
+  onHeadTrackingChange,
+  isVR,
+  onVRChange,
+  quality,
+  onQualityChange,
+  onBack
+}) => {
+  const buttonStyle = {
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(212, 175, 55, 0.3)',
+    color: '#D4AF37',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '500',
+    transition: 'all 0.3s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontFamily: 'Arial, sans-serif'
+  };
+
+  const activeButtonStyle = {
+    ...buttonStyle,
+    background: 'rgba(212, 175, 55, 0.2)',
+    borderColor: '#D4AF37',
+    boxShadow: '0 0 10px rgba(212, 175, 55, 0.3)'
+  };
+
+  return (
+    <div style={{
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      background: 'linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 0.95) 100%)',
+      padding: '30px 20px 20px 20px',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '10px',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backdropFilter: 'blur(4px)',
+      zIndex: 100
+    }}>
+      {/* Left Controls */}
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <button
+          onClick={onBack}
+          style={buttonStyle}
+          onMouseEnter={(e) => {
+            (e.target as HTMLButtonElement).style.background = 'rgba(212, 175, 55, 0.2)';
+            (e.target as HTMLButtonElement).style.boxShadow = '0 0 10px rgba(212, 175, 55, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            (e.target as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
+            (e.target as HTMLButtonElement).style.boxShadow = 'none';
+          }}
+        >
+          <ArrowLeft size={16} /> Voltar
+        </button>
+        
+        <button
+          onClick={onPlayPause}
+          style={isPlaying ? activeButtonStyle : buttonStyle}
+          onMouseEnter={(e) => {
+            (e.target as HTMLButtonElement).style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            (e.target as HTMLButtonElement).style.transform = 'scale(1)';
+          }}
+        >
+          {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+          {isPlaying ? 'Pausa' : 'Play'}
+        </button>
+      </div>
+
+      {/* Center Controls */}
+      <div style={{ display: 'flex', gap: '8px', flex: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => onViewModeChange(ViewMode.Mode360)}
+          style={viewMode === ViewMode.Mode360 ? activeButtonStyle : buttonStyle}
+        >
+          360°
+        </button>
+        
+        <button
+          onClick={() => onViewModeChange(ViewMode.Mode180)}
+          style={viewMode === ViewMode.Mode180 ? activeButtonStyle : buttonStyle}
+        >
+          180°
+        </button>
+        
+        <button
+          onClick={() => onViewModeChange(ViewMode.Mode120)}
+          style={viewMode === ViewMode.Mode120 ? activeButtonStyle : buttonStyle}
+        >
+          120°
+        </button>
+
+        <input
+          type="range"
+          min="30"
+          max="120"
+          value={zoom}
+          onChange={(e) => onZoomChange(parseInt(e.target.value))}
+          style={{
+            width: '120px',
+            cursor: 'pointer',
+            accentColor: '#D4AF37'
+          }}
+          title="Zoom"
+        />
+      </div>
+
+      {/* Right Controls */}
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <button
+          onClick={() => onHeadTrackingChange(!headTracking)}
+          style={headTracking ? activeButtonStyle : buttonStyle}
+          title="Head Tracking"
+        >
+          🗣 Head
+        </button>
+        
+        <button
+          onClick={() => onVRChange(!isVR)}
+          style={isVR ? activeButtonStyle : buttonStyle}
+          title="VR Mode"
+        >
+          VR
+        </button>
+
+        <button
+          onClick={() => onQualityChange({ brightness: quality.brightness })}
+          style={buttonStyle}
+          title="Settings"
+        >
+          <Settings size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Controls;import React, { useRef, useState } from 'react';
 import { 
   Play, Pause, Volume2, VolumeX, Repeat, 
   Glasses, Smartphone, FileVideo, 
