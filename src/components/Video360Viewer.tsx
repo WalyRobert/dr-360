@@ -51,6 +51,74 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
     }
   };
 
+  // VR Layout: Renderiza dois Canvas lado a lado (vertical split)
+  if (isVR && isReady) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '100vh',
+        display: 'flex',
+        background: '#000'
+      }}>
+        {/* Video - sempre carregado PRIMEIRO */}
+        <video
+          ref={videoRef}
+          style={{ display: 'none' }}
+          crossOrigin="anonymous"
+          loop
+          muted
+        >
+          <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4" type="video/mp4" />
+        </video>
+
+        {/* Viewport Esquerdo (Olho Esquerdo) */}
+        <div style={{ flex: 1, position: 'relative', background: '#000' }}>
+          <Canvas
+            camera={{ position: [0, 0, 0.1], fov: zoom }}
+            style={{ width: '100%', height: '100%' }}
+            gl={{
+              antialias: true,
+              alpha: false,
+              powerPreference: 'high-performance'
+            }}
+          >
+            <Scene
+              videoElement={videoRef.current}
+              viewMode={viewMode}
+              zoom={zoom}
+              headTracking={headTracking}
+              isVR={isVR}
+              quality={quality}
+            />
+          </Canvas>
+        </div>
+
+        {/* Viewport Direito (Olho Direito) - Ligeiramente deslocado para efeito estereoscópico */}
+        <div style={{ flex: 1, position: 'relative', background: '#000' }}>
+          <Canvas
+            camera={{ position: [0.064, 0, 0.1], fov: zoom }}
+            style={{ width: '100%', height: '100%' }}
+            gl={{
+              antialias: true,
+              alpha: false,
+              powerPreference: 'high-performance'
+            }}
+          >
+            <Scene
+              videoElement={videoRef.current}
+              viewMode={viewMode}
+              zoom={zoom}
+              headTracking={headTracking}
+              isVR={isVR}
+              quality={quality}
+            />
+          </Canvas>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal Layout: Single Canvas
   return (
     <div style={{
       width: '100%',
