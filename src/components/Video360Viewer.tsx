@@ -51,14 +51,18 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
     }
   };
 
-  // VR Layout: Renderiza dois Canvas lado a lado (vertical split)
+  // VR Layout VERTICAL: Renderiza dois Canvas UM ACIMA DO OUTRO (Top-Bottom para Google Cardboard Portrait Mode)
   if (isVR && isReady) {
     return (
       <div style={{
-        width: '100%',
+        width: '100vw',
         height: '100vh',
         display: 'flex',
-        background: '#000'
+        flexDirection: 'column',
+        background: '#000',
+        margin: 0,
+        padding: 0,
+        overflow: 'hidden'
       }}>
         {/* Video - sempre carregado PRIMEIRO */}
         <video
@@ -71,15 +75,25 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
           <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4" type="video/mp4" />
         </video>
 
-        {/* Viewport Esquerdo (Olho Esquerdo) */}
-        <div style={{ flex: 1, position: 'relative', background: '#000' }}>
+        {/* Viewport Superior (Olho Superior/Esquerdo) */}
+        <div style={{
+          flex: '1 1 50%',
+          position: 'relative',
+          background: '#000',
+          width: '100%',
+          height: '50vh',
+          display: 'flex',
+          alignItems: 'stretch',
+          overflow: 'hidden'
+        }}>
           <Canvas
-            camera={{ position: [0, 0, 0.1], fov: zoom }}
+            camera={{ position: [-0.032, 0, 0.1], fov: zoom }}
             style={{ width: '100%', height: '100%' }}
             gl={{
               antialias: true,
               alpha: false,
-              powerPreference: 'high-performance'
+              powerPreference: 'high-performance',
+              precision: 'highp'
             }}
           >
             <Scene
@@ -93,15 +107,25 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
           </Canvas>
         </div>
 
-        {/* Viewport Direito (Olho Direito) - Ligeiramente deslocado para efeito estereoscópico */}
-        <div style={{ flex: 1, position: 'relative', background: '#000' }}>
+        {/* Viewport Inferior (Olho Inferior/Direito) - Ligeiramente deslocado para efeito estereoscópico VERTICAL */}
+        <div style={{
+          flex: '1 1 50%',
+          position: 'relative',
+          background: '#000',
+          width: '100%',
+          height: '50vh',
+          display: 'flex',
+          alignItems: 'stretch',
+          overflow: 'hidden'
+        }}>
           <Canvas
-            camera={{ position: [0.064, 0, 0.1], fov: zoom }}
+            camera={{ position: [0.032, 0, 0.1], fov: zoom }}
             style={{ width: '100%', height: '100%' }}
             gl={{
               antialias: true,
               alpha: false,
-              powerPreference: 'high-performance'
+              powerPreference: 'high-performance',
+              precision: 'highp'
             }}
           >
             <Scene
@@ -185,8 +209,8 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
         )}
       </div>
 
-      {/* Controls Bar */}
-      {isReady && (
+      {/* Controls Bar - Hidden in VR Mode */}
+      {isReady && !isVR && (
         <Controls
           isPlaying={isPlaying}
           onPlayPause={handlePlayPause}
