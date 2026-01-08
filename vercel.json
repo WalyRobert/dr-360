@@ -1,8 +1,9 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/(.*)",
-      "destination": "/"
+      "destination": "https://stitch.withgoogle.com/projects/5929593525739188444?pli=1",
+      "permanent": false
     }
   ]
 }
