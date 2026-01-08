@@ -1,33 +1,40 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DR 360° - Reprodutor de Vídeo Imersivo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DR 360°">
+  <title>DR 360° - Mobile Video Player</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    body {
-      width: 100%;
-      height: 100vh;
-      overflow: hidden;
-    }
-    iframe {
+    html, body {
       width: 100%;
       height: 100%;
-      border: none;
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      color: #fff;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <iframe
-    src="https://stitch.withgoogle.com/projects/5929593525739188444?pli=1"
-    allow="autoplay; fullscreen; camera; accelerometer; gyroscope; xr-spatial-tracking"
-    allowfullscreen
-    title="DR 360° - Reprodutor de Vídeo Imersivo"
-  ></iframe>
+  <div class="loading">Carregando DR 360° Player...</div>
+  <script>
+    // Redireciona direto para o Stitch Player (funciona melhor no celular)
+    window.location.href = 'https://stitch.withgoogle.com/projects/5929593525739188444?pli=1';
+  </script>
 </body>
 </html>
