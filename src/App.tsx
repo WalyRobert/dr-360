@@ -1,18 +1,22 @@
-import React, { useState, useRef } from 'react';
-import { RotateCw, Eye, Settings, Menu, ChevronLeft } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import LandingPage from './components/LandingPage';
+import { Play, AlertCircle } from 'lucide-react';
 
-export default function App() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+interface VideoPlayerProps {
+  src: string;
+  fileName: string;
+  onBack: () => void;
+  onFileChange: (file: File) => void;
+}
+
+function VideoPlayerComponent({ src, fileName, onBack, onFileChange }: VideoPlayerProps) {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [isVRMode, setIsVRMode] = useState(false);
-  const [mode360, setMode360] = useState(false);
-  const [showControls, setShowControls] = useState(true);
-  const [showMenu, setShowMenu] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -70,315 +74,237 @@ export default function App() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const buttonStyle = {
-    background: 'none',
-    border: 'none',
-    color: '#fff',
-    cursor: 'pointer',
-    padding: '8px 12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '4px',
-    transition: 'background 0.2s',
-    fontSize: '14px',
-  } as React.CSSProperties;
-
   return (
     <div
       ref={containerRef}
       style={{
-        width: '100vw',
+        width: '100%',
         height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#1a1a1a',
+        fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+      }}
+    >
+      {/* Top Bar */}
+      <div style={{
+        padding: '15px 20px',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        color: '#fff',
+        zIndex: 100,
+      }}>
+        <button
+          onClick={onBack}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#D4AF37',
+            fontSize: '18px',
+            cursor: 'pointer',
+          }}
+        >
+          ← VOLTAR
+        </button>
+        <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+          {fileName}
+        </div>
+        <button
+          onClick={() => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'video/*';
+            input.onchange = (e) => {
+              const file = (e.target as HTMLInputElement).files?.[0];
+              if (file) onFileChange(file);
+            };
+            input.click();
+          }}
+          style={{
+            background: '#D4AF37',
+            border: 'none',
+            color: '#000',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          OUTRO VÍDEO
+        </button>
+      </div>
+
+      {/* Video Container */}
+      <div style={{
+        flex: 1,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#001a2e',
-        fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
-        overflow: 'hidden',
-      }}
-      onMouseMove={() => setShowControls(true)}
-    >
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-        }}
-      >
-        {/* Top Header */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%)',
-            padding: '15px 20px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            zIndex: 10,
-            color: '#fff',
-            transition: 'opacity 0.3s',
-            opacity: showControls ? 1 : 0,
-          }}
-        >
-          {/* Left: Back Button */}
-          <button
-            onClick={() => window.history.back()}
-            style={{
-              ...buttonStyle,
-              fontSize: '20px',
-            } as React.CSSProperties}
-            title="Voltar"
-          >
-            <ChevronLeft size={24} />
-          </button>
-
-          {/* Center: Title */}
-          <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 'bold', letterSpacing: '2px' }}>
-            SUMMIT OF EVEREST
-            <div style={{ fontSize: '10px', marginTop: '2px' }}>360°</div>
-          </div>
-
-          {/* Right: Menu Button */}
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            style={buttonStyle as React.CSSProperties}
-            title="Menu"
-          >
-            <Menu size={24} />
-          </button>
-        </div>
-
-        {/* Video */}
-        <video
-          ref={videoRef}
-          src="https://media-files.vidstack.io/360_hd_demo.mp4"
-          style={{
-            flex: 1,
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            backgroundColor: '#000',
-          }}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        />
-
-        {/* Left Side Button - Rotate */}
-        <button
-          onClick={() => setMode360(!mode360)}
-          style={{
-            position: 'absolute',
-            left: '20px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            ...buttonStyle,
-            fontSize: '32px',
-            background: mode360 ? 'rgba(0, 188, 212, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            zIndex: 5,
-            transition: 'all 0.2s',
-          } as React.CSSProperties}
-          title="Modo 360"
-        >
-          <RotateCw size={32} />
-        </button>
-
-        {/* Center Play Button */}
-        <button
-          onClick={togglePlay}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(0, 188, 212, 0.3)',
-            backdropFilter: 'blur(10px)',
-            border: '3px solid rgba(0, 188, 212, 0.5)',
-            color: '#fff',
-            fontSize: '48px',
-            cursor: 'pointer',
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 5,
-            transition: 'all 0.2s',
-          } as React.CSSProperties}
-        >
-          {isPlaying ? '⏸' : '▶'}
-        </button>
-
-        {/* Right Side Button - Rotate */}
-        <button
-          onClick={() => setMode360(!mode360)}
-          style={{
-            position: 'absolute',
-            right: '20px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            ...buttonStyle,
-            fontSize: '32px',
-            background: mode360 ? 'rgba(0, 188, 212, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            zIndex: 5,
-            transition: 'all 0.2s',
-          } as React.CSSProperties}
-          title="Modo 360"
-        >
-          <RotateCw size={32} />
-        </button>
-
-        {/* Bottom Controls Bar */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(transparent, rgba(0,0,0,0.9))',
-            padding: '30px 15px 15px',
-            color: '#fff',
-            fontSize: '14px',
-            zIndex: 10,
-            transition: 'opacity 0.3s',
-            opacity: showControls ? 1 : 0,
-          }}
-        >
-          {/* Progress Bar */}
-          <input
-            type="range"
-            min="0"
-            max={duration || 0}
-            value={currentTime}
-            onChange={handleProgressChange}
+        backgroundColor: '#000',
+        position: 'relative',
+      }}>
+        {src ? (
+          <video
+            ref={videoRef}
+            src={src}
             style={{
               width: '100%',
-              height: '4px',
-              cursor: 'pointer',
-              marginBottom: '15px',
-              background: 'rgba(0, 188, 212, 0.3)',
-              borderRadius: '2px',
-              WebkitAppearance: 'none',
-              outline: 'none',
+              height: '100%',
+              objectFit: 'contain',
             }}
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
           />
+        ) : (
+          <div style={{ color: '#D4AF37', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <AlertCircle /> Carregando vídeo...
+          </div>
+        )}
+      </div>
 
-          {/* Controls Row */}
-          <div
+      {/* Controls Bar - OURO/DOURADO */}
+      <div style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: '15px 20px',
+        color: '#fff',
+        borderTop: '2px solid #D4AF37',
+      }}>
+        {/* Progress Bar */}
+        <input
+          type="range"
+          min="0"
+          max={duration || 0}
+          value={currentTime}
+          onChange={handleProgressChange}
+          style={{
+            width: '100%',
+            height: '6px',
+            marginBottom: '12px',
+            cursor: 'pointer',
+            background: '#D4AF37',
+            borderRadius: '3px',
+            WebkitAppearance: 'none',
+          }}
+        />
+
+        {/* Controls */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '15px',
+        }}>
+          {/* Left: Play, Volume, Time */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            {/* Play Button */}
+            <button
+              onClick={togglePlay}
+              style={{
+                background: '#D4AF37',
+                border: 'none',
+                color: '#000',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                fontSize: '16px',
+              }}
+            >
+              {isPlaying ? '⏸' : '▶'}
+            </button>
+
+            {/* Volume */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px', color: '#D4AF37' }}>🔊</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={volume}
+                onChange={handleVolumeChange}
+                style={{
+                  width: '80px',
+                  cursor: 'pointer',
+                  accentColor: '#D4AF37',
+                }}
+              />
+            </div>
+
+            {/* Time */}
+            <span style={{ fontSize: '12px', minWidth: '80px', fontFamily: 'monospace' }}>
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+          </div>
+
+          {/* Right: Fullscreen */}
+          <button
+            onClick={toggleFullscreen}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '10px',
+              background: '#D4AF37',
+              border: 'none',
+              color: '#000',
+              padding: '8px 12px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
             }}
           >
-            {/* Left Controls */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-              }}
-            >
-              {/* Play/Pause */}
-              <button
-                onClick={togglePlay}
-                style={{
-                  ...buttonStyle,
-                  fontSize: '20px',
-                } as React.CSSProperties}
-                title={isPlaying ? 'Pausar' : 'Reproduzir'}
-              >
-                {isPlaying ? '⏸' : '▶'}
-              </button>
-
-              {/* Volume Control */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                }}
-              >
-                <span style={{ fontSize: '16px' }}>🔊</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  style={{
-                    width: '50px',
-                    height: '3px',
-                    cursor: 'pointer',
-                  }}
-                />
-              </div>
-
-              {/* Time Display */}
-              <div style={{ fontSize: '11px', minWidth: '70px', fontFamily: 'monospace' }}>
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </div>
-            </div>
-
-            {/* Right Controls */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-              }}
-            >
-              {/* VR Mode */}
-              <button
-                onClick={() => setIsVRMode(!isVRMode)}
-                style={{
-                  ...buttonStyle,
-                  background: isVRMode ? 'rgba(0, 188, 212, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-                } as React.CSSProperties}
-                title="Modo VR"
-              >
-                <Eye size={18} />
-              </button>
-
-              {/* Settings */}
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                style={{
-                  ...buttonStyle,
-                  background: showMenu ? 'rgba(0, 188, 212, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-                } as React.CSSProperties}
-                title="Configurações"
-              >
-                <Settings size={18} />
-              </button>
-
-              {/* Fullscreen */}
-              <button
-                onClick={toggleFullscreen}
-                style={{
-                  ...buttonStyle,
-                  fontSize: '18px',
-                } as React.CSSProperties}
-                title="Tela cheia"
-              >
-                {isFullscreen ? '⛶' : '⛶'}
-              </button>
-            </div>
-          </div>
+            {isFullscreen ? '⛶ SAIR' : '⛶ FULLSCREEN'}
+          </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const [videoName, setVideoName] = useState<string>('');
+
+  const handleVideoUpload = useCallback((file: File) => {
+    const url = URL.createObjectURL(file);
+    setVideoSrc(url);
+    setVideoName(file.name);
+  }, []);
+
+  const handleUrlSubmit = useCallback((url: string) => {
+    setVideoSrc(url);
+    const name = url.split('/').pop() || 'Vídeo Externo';
+    setVideoName(name.split('?')[0]);
+  }, []);
+
+  const handleBackToHome = () => {
+    if (videoSrc?.startsWith('blob:')) {
+      URL.revokeObjectURL(videoSrc);
+    }
+    setVideoSrc(null);
+    setVideoName('');
+  };
+
+  return (
+    <div style={{ width: '100%', height: '100vh' }}>
+      {!videoSrc ? (
+        <LandingPage
+          onUpload={handleVideoUpload}
+          onUrlSubmit={handleUrlSubmit}
+        />
+      ) : (
+        <VideoPlayerComponent
+          src={videoSrc}
+          fileName={videoName}
+          onBack={handleBackToHome}
+          onFileChange={handleVideoUpload}
+        />
+      )}
     </div>
   );
 }
