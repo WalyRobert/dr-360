@@ -1,42 +1,30 @@
-import React, { useState, Suspense, lazy } from 'react';
-import LandingPage from './components/LandingPage';
-import ErrorBoundary from './components/ErrorBoundary';
+import React from 'react';
 
-const Video360Viewer = lazy(() => import('./components/Video360Viewer'));
-
-const LoadingScreen: React.FC = () => (
-  <div style={{
-    width: '100%',
-    height: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: '#000',
-    color: '#D4AF37',
-    fontSize: '1.2rem',
-    fontFamily: 'Arial, sans-serif'
-  }}>
-    <div style={{ textAlign: 'center' }}>
-      <h2>Carregando Player 360°...</h2>
-      <p>Aguarde um momento</p>
-    </div>
-  </div>
-);
-
-const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'landing' | 'player'>('landing');
-
+export default function App() {
   return (
-    <ErrorBoundary>
-      {currentPage === 'player' ? (
-        <Suspense fallback={<LoadingScreen />}>
-          <Video360Viewer onBack={() => setCurrentPage('landing')} />
-        </Suspense>
-      ) : (
-        <LandingPage onNavigate={() => setCurrentPage('player')} />
-      )}
-    </ErrorBoundary>
+    <div style={{
+      width: '100%',
+      height: '100vh',
+      margin: 0,
+      padding: 0,
+      background: '#000',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden'
+    }}>
+      <iframe
+        src="https://stitch.withgoogle.com/projects/5929593525739188444?pli=1"
+        style={{
+          width: '100%',
+          height: '100%',
+          border: 'none',
+          borderRadius: '0px'
+        }}
+        allow="autoplay; fullscreen; camera; accelerometer; gyroscope; xr-spatial-tracking"
+        allowFullScreen
+        title="DR 360° Mobile Video Player"
+      />
+    </div>
   );
-};
-
-export default App;
+}
