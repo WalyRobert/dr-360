@@ -1,304 +1,184 @@
+
 import React, { useRef, useState } from 'react';
+import { Folder, Play, Volume2, Link } from 'lucide-react';
 
 interface LandingPageProps {
   onUpload: (file: File) => void;
-  onUrlSubmit: (url: string) => void;
+  onUrlSubmit?: (url: string) => void;
 }
+
+const DR360Logo = () => (
+  <div className="relative w-64 h-28 md:w-80 md:h-32 flex items-center justify-center animate-fade-in-up">
+    <svg viewBox="0 0 300 120" className="w-full h-full filter drop-shadow-[0_2px_10px_rgba(212,175,55,0.2)]">
+      <defs>
+        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style={{ stopColor: '#d4af37' }} />
+          <stop offset="100%" style={{ stopColor: '#8b6b1d' }} />
+        </linearGradient>
+      </defs>
+      
+      {/* DR Main Text */}
+      <text 
+        x="130" 
+        y="85" 
+        textAnchor="middle" 
+        fontFamily="Georgia, serif" 
+        fontSize="110" 
+        fontWeight="900" 
+        fill="url(#goldGrad)" 
+        style={{ letterSpacing: '-6px' }}
+      >
+        DR
+      </text>
+
+      {/* 360 Text with Degree Symbol */}
+      <text 
+        x="215" 
+        y="85" 
+        textAnchor="start" 
+        fontFamily="Georgia, serif" 
+        fontSize="34" 
+        fontWeight="400" 
+        fill="url(#goldGrad)" 
+        style={{ letterSpacing: '4px' }}
+      >
+        360°
+      </text>
+
+      {/* Elegant Separator Line */}
+      <rect x="215" y="95" width="45" height="1.5" fill="url(#goldGrad)" opacity="0.6" />
+      
+      {/* Decorative Halo Arc */}
+      <path 
+        d="M60,100 Q150,130 240,100" 
+        fill="none" 
+        stroke="url(#goldGrad)" 
+        strokeWidth="1" 
+        strokeDasharray="4 2"
+        opacity="0.3"
+      />
+    </svg>
+  </div>
+);
 
 const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [urlInput, setUrlInput] = useState('');
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
 
-  const handleFileSelect = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
+      // In App.tsx, this calls URL.createObjectURL(file) as requested
       onUpload(file);
     }
   };
 
-  const handleUrlSubmit = () => {
-    if (urlInput.trim()) {
-      onUrlSubmit(urlInput);
-      setUrlInput('');
-      setShowUrlInput(false);
-    }
+  const handleUrlSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (videoUrl.trim() && onUrlSubmit) onUrlSubmit(videoUrl.trim());
   };
 
   return (
-    <div style={{
-      width: '100%',
-      height: '100vh',
-      background: 'linear-gradient(135deg, #f5f1e8 0%, #ebe5db 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: "'Arial', sans-serif",
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      {/* Background Orbs */}
-      <div style={{
-        position: 'absolute',
-        width: '400px',
-        height: '400px',
-        background: 'radial-gradient(circle, #D4AF37 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(80px)',
-        opacity: 0.3,
-        top: '-100px',
-        right: '-50px',
-        zIndex: 0
-      }} />
-      <div style={{
-        position: 'absolute',
-        width: '300px',
-        height: '300px',
-        background: 'radial-gradient(circle, #6b5d4f 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(80px)',
-        opacity: 0.3,
-        bottom: '-100px',
-        left: '-50px',
-        zIndex: 0
-      }} />
-
-      {/* Content */}
-      <div style={{
-        position: 'relative',
-        zIndex: 10,
-        textAlign: 'center',
-        maxWidth: '600px',
-        padding: '20px'
-      }}>
-        <h1 style={{
-          fontSize: 'clamp(3rem, 10vw, 5rem)',
-          color: '#D4AF37',
-          fontWeight: 900,
-          margin: '0 0 20px 0',
-          letterSpacing: '8px',
-          textTransform: 'uppercase',
-          textShadow: '2px 2px 4px rgba(107, 93, 79, 0.1)'
-        }}>DR 360°</h1>
-
-        <h2 style={{
-          fontSize: 'clamp(1.2rem, 4vw, 2rem)',
-          color: '#6b5d4f',
-          margin: '15px 0 30px 0',
-          letterSpacing: '6px',
-          fontWeight: 300,
-          textTransform: 'uppercase'
-        }}>IMMERSIVE VÍDEO</h2>
-
-        <p style={{
-          fontSize: 'clamp(1rem, 2vw, 1.3rem)',
-          color: '#6b5d4f',
-          lineHeight: 1.8,
-          marginBottom: '50px',
-          opacity: 0.9
-        }}>
-          Experimente a próxima geração de visualização 360°. Tecnologia de ponta para conteúdo imersivo incomparável.
-        </p>
-
-        {/* File Input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="video/*"
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-        />
-
-        {/* Buttons Container */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '15px',
-          alignItems: 'center',
-          marginBottom: '50px'
-        }}>
-          <button
-            onClick={handleFileSelect}
-            style={{
-              padding: '18px 60px',
-              fontSize: 'clamp(1rem, 2vw, 1.3rem)',
-              background: 'linear-gradient(135deg, #D4AF37 0%, #c49925 100%)',
-              color: '#ffffff',
-              border: '2px solid #D4AF37',
-              borderRadius: '50px',
-              cursor: 'pointer',
-              fontWeight: 700,
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              boxShadow: '0 4px 20px rgba(212, 175, 55, 0.3)',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseEnter={(e) => {
-              const target = e.currentTarget as HTMLButtonElement;
-              target.style.transform = 'translateY(-4px) scale(1.05)';
-              target.style.boxShadow = '0 12px 40px rgba(212, 175, 55, 0.5)';
-            }}
-            onMouseLeave={(e) => {
-              const target = e.currentTarget as HTMLButtonElement;
-              target.style.transform = 'translateY(0) scale(1)';
-              target.style.boxShadow = '0 4px 20px rgba(212, 175, 55, 0.3)';
-            }}
-          >
-            CARREGAR VÍDEO
-          </button>
-
-          <button
-            onClick={() => setShowUrlInput(!showUrlInput)}
-            style={{
-              padding: '12px 40px',
-              fontSize: 'clamp(0.9rem, 1.5vw, 1.1rem)',
-              background: 'rgba(212, 175, 55, 0.2)',
-              color: '#D4AF37',
-              border: '2px solid #D4AF37',
-              borderRadius: '50px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseEnter={(e) => {
-              const target = e.currentTarget as HTMLButtonElement;
-              target.style.background = 'rgba(212, 175, 55, 0.1)';
-              target.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              const target = e.currentTarget as HTMLButtonElement;
-              target.style.background = 'rgba(212, 175, 55, 0.2)';
-              target.style.transform = 'translateY(0)';
-            }}
-          >
-            OU USAR URL
-          </button>
+    <div className="relative w-full h-full flex items-center justify-center p-4">
+      {/* Main Container - The Square with SHARP corners and gold border */}
+      <div className="relative w-full max-w-[900px] aspect-square gold-border-gradient rounded-none flex flex-col items-center justify-center py-10 px-12 shadow-[0_20px_60px_rgba(74,63,53,0.15)] overflow-hidden">
+        
+        {/* Branding Section */}
+        <div className="flex flex-col items-center justify-center w-full mb-12">
+          <DR360Logo />
+          <h1 className="mt-2 text-4xl md:text-6xl font-serif gold-text-effect tracking-tight">
+            Dodge Recian
+          </h1>
+          <p className="mt-2 text-dr-brown/40 text-[10px] font-bold tracking-[0.6em] uppercase">
+            Luxury Immersive Vision
+          </p>
         </div>
 
-        {/* URL Input */}
-        {showUrlInput && (
-          <div style={{
-            display: 'flex',
-            gap: '10px',
-            marginBottom: '30px',
-            justifyContent: 'center',
-            maxWidth: '500px',
-            margin: '0 auto 30px'
-          }}>
-            <input
-              type="text"
-              placeholder="Cole a URL do vídeo"
-              value={urlInput}
-              onChange={(e) => setUrlInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleUrlSubmit()}
-              style={{
-                flex: 1,
-                padding: '12px 20px',
-                fontSize: '1rem',
-                border: '2px solid #D4AF37',
-                borderRadius: '25px',
-                backgroundColor: '#ffffff',
-                color: '#6b5d4f',
-                fontFamily: 'inherit',
-                outline: 'none'
-              }}
-            />
-            <button
-              onClick={handleUrlSubmit}
-              style={{
-                padding: '12px 25px',
-                backgroundColor: '#D4AF37',
-                color: '#000',
-                border: 'none',
-                borderRadius: '25px',
-                cursor: 'pointer',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                fontSize: '0.9rem',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                const target = e.currentTarget as HTMLButtonElement;
-                target.style.transform = 'translateY(-2px)';
-                target.style.boxShadow = '0 8px 20px rgba(212, 175, 55, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                const target = e.currentTarget as HTMLButtonElement;
-                target.style.transform = 'translateY(0)';
-                target.style.boxShadow = 'none';
-              }}
-            >
-              ENVIAR
-            </button>
-          </div>
-        )}
+        {/* Central Premium Control Hub */}
+        <div className="relative flex flex-col items-center justify-center w-full max-w-lg">
+          
+          {/* URL Input overlay (Premium) - Optional path */}
+          {showUrlInput && (
+            <div className="absolute -top-32 inset-x-0 animate-fade-in-up bg-white/95 backdrop-blur-md p-6 rounded-none border border-dr-gold/30 z-30 shadow-2xl">
+              <form onSubmit={handleUrlSubmit} className="flex gap-4">
+                <input 
+                  autoFocus
+                  type="url"
+                  placeholder="https://exclusive-video.mp4"
+                  className="flex-1 bg-transparent border-b border-dr-gold/40 text-dr-brown outline-none p-2 text-sm"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                />
+                <button type="submit" className="text-dr-gold hover:text-dr-goldLight font-serif font-bold">GO</button>
+                <button type="button" onClick={() => setShowUrlInput(false)} className="text-dr-gray hover:text-dr-brown text-xs">CLOSE</button>
+              </form>
+            </div>
+          )}
 
-        {/* Features */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-          gap: '20px',
-          marginTop: '60px',
-          maxWidth: '400px',
-          margin: '60px auto 0'
-        }}>
-          <div style={{
-            padding: '20px',
-            background: 'rgba(212, 175, 55, 0.1)',
-            borderRadius: '15px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(212, 175, 55, 0.2)'
-          }}>
-            <p style={{
-              fontSize: '0.9rem',
-              color: '#6b5d4f',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              margin: 0
-            }}>360° Completo</p>
+          {/* All buttons clustered together */}
+          <div className="flex items-center justify-center space-x-4 md:space-x-8">
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => fileInputRef.current?.click()} 
+                className="gold-icon-btn shadow-gold-glow"
+                title="Upload File"
+              >
+                <Folder size={20} />
+              </button>
+              <button 
+                className="gold-icon-btn shadow-gold-glow" 
+                onClick={() => setShowUrlInput(!showUrlInput)}
+                title="Enter URL"
+              >
+                <Link size={20} />
+              </button>
+            </div>
+
+            {/* Central Large Play Button - Now triggers file picker as requested */}
+            <button 
+              onClick={() => fileInputRef.current?.click()} 
+              className="gold-play-btn z-10"
+              aria-label="Select Video from PC"
+            >
+              <Play size={40} fill="currentColor" />
+            </button>
+
+            <div className="flex items-center space-x-4">
+              <button className="gold-icon-btn shadow-gold-glow" title="Volume">
+                <Volume2 size={20} />
+              </button>
+              <button className="gold-icon-btn shadow-gold-glow" title="View Mode">
+                <div className="w-4 h-4 rounded-none border border-dr-gold/60 bg-white/80 shadow-inner"></div>
+              </button>
+            </div>
           </div>
-          <div style={{
-            padding: '20px',
-            background: 'rgba(212, 175, 55, 0.1)',
-            borderRadius: '15px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(212, 175, 55, 0.2)'
-          }}>
-            <p style={{
-              fontSize: '0.9rem',
-              color: '#6b5d4f',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              margin: 0
-            }}>Toque e Arrasto</p>
+
+          {/* Mini Seek Bar directly under the buttons */}
+          <div className="w-64 mt-12 flex items-center space-x-3 opacity-50">
+            <span className="text-[10px] text-dr-brown/40 font-serif">0:00</span>
+            <div className="flex-1 h-[1px] bg-dr-gold/20 relative">
+               <div className="absolute top-0 left-0 h-full w-1/3 bg-dr-gold"></div>
+            </div>
+            <span className="text-[10px] text-dr-brown/40 font-serif">-360</span>
           </div>
-          <div style={{
-            padding: '20px',
-            background: 'rgba(212, 175, 55, 0.1)',
-            borderRadius: '15px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(212, 175, 55, 0.2)'
-          }}>
-            <p style={{
-              fontSize: '0.9rem',
-              color: '#6b5d4f',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              margin: 0
-            }}>Premium Design</p>
-          </div>
+        </div>
+
+        {/* Decorative footer text */}
+        <div className="absolute bottom-10 text-center">
+           <p className="text-[8px] text-dr-brown/20 tracking-[0.8em] uppercase">
+             Excellence in Motion
+           </p>
         </div>
       </div>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="video/mp4,video/webm"
+        className="hidden"
+      />
     </div>
   );
 };
