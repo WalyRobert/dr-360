@@ -44,14 +44,13 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
 
   // Quality and Settings State
   const [quality, setQuality] = useState<QualitySettings>(defaultQuality);
-  const [settings, setSettings] = useState<PlayerSettings>(defaultSettings);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [fileName, setFileName] = useState('ElephantsDream.mp4');
 
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = useRef<any>(undefined);
 
   // Initialize video
   useEffect(() => {
@@ -226,7 +225,8 @@ const Video360Viewer: React.FC<Video360ViewerProps> = ({ onBack }) => {
     isMuted,
     volume,
     playbackRate,
-    isLooping
+    isLooping,
+    isBuffering: false
   };
 
   // Build player settings object
