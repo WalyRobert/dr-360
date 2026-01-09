@@ -1,0 +1,7 @@
+{
+  "name": "DR 360° - Dodge Recian",
+  "description": "Premium immersive 360° video player featuring VR mode, head tracking, and varied viewing angles.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
