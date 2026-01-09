@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useThree, useFrame, extend } from '@react-three/fiber';
-import { OrbitControls, DeviceOrientationControls, shaderMaterial } from '@react-three/drei';
+import { DeviceOrientationControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { ViewMode, QualitySettings } from '../types';
 
@@ -79,6 +79,7 @@ const Scene: React.FC<SceneProps> = ({
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const rotation = useRef({ x: 0, y: 0 });
+  const rotationVelocity = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     if (camera instanceof THREE.PerspectiveCamera) {
@@ -99,7 +100,6 @@ const Scene: React.FC<SceneProps> = ({
     if (materialRef.current) {
       materialRef.current.map = texture;
     }
-
     const updateRes = () => {
       if (videoElement.videoWidth && materialRef.current) {
         materialRef.current.resolution.set(
@@ -108,10 +108,8 @@ const Scene: React.FC<SceneProps> = ({
         );
       }
     };
-
     videoElement.addEventListener('loadedmetadata', updateRes);
     videoElement.addEventListener('playing', updateRes);
-
     return () => {
       videoElement.removeEventListener('loadedmetadata', updateRes);
       videoElement.removeEventListener('playing', updateRes);
@@ -126,6 +124,14 @@ const Scene: React.FC<SceneProps> = ({
     if (meshRef.current) {
       meshRef.current.rotation.y = rotation.current.y;
       meshRef.current.rotation.x = rotation.current.x;
+    }
+    
+    // Apply inertia/momentum to rotation
+    if (!isDragging.current) {
+      rotationVelocity.current.x *= 0.95;
+      rotationVelocity.current.y *= 0.95;
+      rotation.current.x += rotationVelocity.current.x;
+      rotation.current.y += rotationVelocity.current.y;
     }
   });
 
@@ -147,22 +153,29 @@ const Scene: React.FC<SceneProps> = ({
     }
   }, [quality]);
 
-  const handleMouseDown = (e: any) => {
+  const handleMouseDown = (e: MouseEvent | TouchEvent) => {
     isDragging.current = true;
-    dragStart.current = { x: e.clientX || e.touches?.[0]?.clientX || 0, y: e.clientY || e.touches?.[0]?.clientY || 0 };
+    const x = 'touches' in e ? e.touches[0]?.clientX || 0 : (e as MouseEvent).clientX;
+    const y = 'touches' in e ? e.touches[0]?.clientY || 0 : (e as MouseEvent).clientY;
+    dragStart.current = { x, y };
   };
 
-  const handleMouseMove = (e: any) => {
+  const handleMouseMove = (e: MouseEvent | TouchEvent) => {
     if (!isDragging.current) return;
-    const currentX = e.clientX || e.touches?.[0]?.clientX || 0;
-    const currentY = e.clientY || e.touches?.[0]?.clientY || 0;
-    const deltaX = (currentX - dragStart.current.x) * 0.01;
-    const deltaY = (currentY - dragStart.current.y) * 0.01;
+    const x = 'touches' in e ? e.touches[0]?.clientX || 0 : (e as MouseEvent).clientX;
+    const y = 'touches' in e ? e.touches[0]?.clientY || 0 : (e as MouseEvent).clientY;
+    
+    const deltaX = (x - dragStart.current.x) * 0.005;
+    const deltaY = (y - dragStart.current.y) * 0.005;
     
     rotation.current.y += deltaX;
     rotation.current.x += deltaY;
     
-    dragStart.current = { x: currentX, y: currentY };
+    // Store velocity for inertia
+    rotationVelocity.current.x = deltaY * 0.5;
+    rotationVelocity.current.y = deltaX * 0.5;
+    
+    dragStart.current = { x, y };
   };
 
   const handleMouseUp = () => {
@@ -171,20 +184,25 @@ const Scene: React.FC<SceneProps> = ({
 
   useEffect(() => {
     const canvas = gl.domElement;
-    canvas.addEventListener('mousedown', handleMouseDown, false);
-    canvas.addEventListener('mousemove', handleMouseMove, false);
-    canvas.addEventListener('mouseup', handleMouseUp, false);
-    canvas.addEventListener('touchstart', handleMouseDown, false);
-    canvas.addEventListener('touchmove', handleMouseMove, false);
-    canvas.addEventListener('touchend', handleMouseUp, false);
+    
+    const handleDown = (e: MouseEvent | TouchEvent) => handleMouseDown(e);
+    const handleMove = (e: MouseEvent | TouchEvent) => handleMouseMove(e);
+    const handleUp = () => handleMouseUp();
+    
+    canvas.addEventListener('mousedown', handleDown as EventListener, false);
+    canvas.addEventListener('mousemove', handleMove as EventListener, false);
+    canvas.addEventListener('mouseup', handleUp, false);
+    canvas.addEventListener('touchstart', handleDown as EventListener, false);
+    canvas.addEventListener('touchmove', handleMove as EventListener, false);
+    canvas.addEventListener('touchend', handleUp, false);
     
     return () => {
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseup', handleMouseUp);
-      canvas.removeEventListener('touchstart', handleMouseDown);
-      canvas.removeEventListener('touchmove', handleMouseMove);
-      canvas.removeEventListener('touchend', handleMouseUp);
+      canvas.removeEventListener('mousedown', handleDown as EventListener);
+      canvas.removeEventListener('mousemove', handleMove as EventListener);
+      canvas.removeEventListener('mouseup', handleUp);
+      canvas.removeEventListener('touchstart', handleDown as EventListener);
+      canvas.removeEventListener('touchmove', handleMove as EventListener);
+      canvas.removeEventListener('touchend', handleUp);
     };
   }, [gl]);
 
@@ -220,16 +238,8 @@ const Scene: React.FC<SceneProps> = ({
           transparent={false}
         />
       </mesh>
-      {headTracking ? (
+      {headTracking && (
         <DeviceOrientationControls enableZoom={false} enablePan={false} />
-      ) : (
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          rotateSpeed={-0.5}
-          reverseOrbit={true}
-          autoRotate={false}
-        />
       )}
     </>
   );
