@@ -17,6 +17,9 @@ function VideoPlayerComponent({ src, fileName, onBack, onFileChange }: VideoPlay
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fov, setFov] = useState<360 | 180 | 120>(360);
+  const [isVR, setIsVR] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -72,6 +75,24 @@ function VideoPlayerComponent({ src, fileName, onBack, onFileChange }: VideoPlay
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const buttonStyle = {
+    background: '#D4AF37',
+    border: 'none',
+    color: '#000',
+    padding: '8px 12px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontWeight: 'bold' as const,
+    fontSize: '12px',
+    transition: 'all 0.2s ease',
+  };
+
+  const inactiveButtonStyle = {
+    ...buttonStyle,
+    background: 'rgba(212, 175, 55, 0.3)',
+    color: '#D4AF37',
   };
 
   return (
@@ -166,7 +187,7 @@ function VideoPlayerComponent({ src, fileName, onBack, onFileChange }: VideoPlay
         )}
       </div>
 
-      {/* Controls Bar - OURO/DOURADO */}
+      {/* Controls Bar */}
       <div style={{
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         padding: '15px 20px',
@@ -191,15 +212,16 @@ function VideoPlayerComponent({ src, fileName, onBack, onFileChange }: VideoPlay
           }}
         />
 
-        {/* Controls */}
+        {/* Controls Row */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '15px',
+          flexWrap: 'wrap',
         }}>
-          {/* Left: Play, Volume, Time */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          {/* Left Section: Play, Volume, Time */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {/* Play Button */}
             <button
               onClick={togglePlay}
@@ -245,22 +267,95 @@ function VideoPlayerComponent({ src, fileName, onBack, onFileChange }: VideoPlay
             </span>
           </div>
 
-          {/* Right: Fullscreen */}
-          <button
-            onClick={toggleFullscreen}
-            style={{
-              background: '#D4AF37',
-              border: 'none',
-              color: '#000',
-              padding: '8px 12px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
-          >
-            {isFullscreen ? '⛶ SAIR' : '⛶ FULLSCREEN'}
-          </button>
+          {/* Middle Section: FOV and VR Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* 360° Mode */}
+            <button
+              onClick={() => setFov(360)}
+              style={fov === 360 ? buttonStyle : inactiveButtonStyle}
+              title="Modo 360°"
+            >
+              360°
+            </button>
+
+            {/* 180° Mode */}
+            <button
+              onClick={() => setFov(180)}
+              style={fov === 180 ? buttonStyle : inactiveButtonStyle}
+              title="Modo 180°"
+            >
+              180°
+            </button>
+
+            {/* 120° Mode */}
+            <button
+              onClick={() => setFov(120)}
+              style={fov === 120 ? buttonStyle : inactiveButtonStyle}
+              title="Modo 120°"
+            >
+              120°
+            </button>
+
+            {/* VR Mode */}
+            <button
+              onClick={() => setIsVR(!isVR)}
+              style={isVR ? buttonStyle : inactiveButtonStyle}
+              title="Modo VR"
+            >
+              🥽 VR
+            </button>
+          </div>
+
+          {/* Right Section: Settings and Fullscreen */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Settings Button */}
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              style={buttonStyle}
+              title="Configurações"
+            >
+              ⚙️
+            </button>
+
+            {/* Fullscreen Button */}
+            <button
+              onClick={toggleFullscreen}
+              style={buttonStyle}
+              title={isFullscreen ? 'Sair do modo tela cheia' : 'Modo tela cheia'}
+            >
+              {isFullscreen ? '⛶ SAIR' : '⛶'}
+            </button>
+          </div>
         </div>
+
+        {/* Settings Panel */}
+        {showSettings && (
+          <div style={{
+            marginTop: '12px',
+            padding: '12px',
+            backgroundColor: 'rgba(212, 175, 55, 0.1)',
+            borderRadius: '4px',
+            border: '1px solid #D4AF37',
+            color: '#D4AF37',
+            fontSize: '12px',
+          }}>
+            <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>Configurações</div>
+            <div style={{ marginBottom: '8px' }}>Campo de Visão (FOV): {fov}°</div>
+            <div style={{ marginBottom: '8px' }}>Modo VR: {isVR ? 'Ativado' : 'Desativado'}</div>
+            <div style={{ marginBottom: '8px' }}>Volume: {Math.round(volume * 100)}%</div>
+            <div style={{ marginBottom: '8px' }}>Resolução: Automática</div>
+            <button
+              onClick={() => setShowSettings(false)}
+              style={{
+                ...buttonStyle,
+                marginTop: '8px',
+                width: '100%',
+              }}
+            >
+              Fechar
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
