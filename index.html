@@ -1,13 +1,127 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DR 360° - Player de vídeo 360 graus</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+    <title>Dodge Recian - Premium 360°</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              dr: {
+                gold: '#D4AF37',
+                goldLight: '#F3E5AB',
+                black: '#0a0a0a',
+                dark: '#141414',
+                gray: '#8B8680',
+                beige: '#f5f1e8',
+                brown: '#4a3f35',
+                offwhite: '#faf9f6',
+              }
+            },
+            fontFamily: {
+              serif: ['Georgia', 'serif'],
+              sans: ['system-ui', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @tailwind base;
+      @tailwind components;
+      @tailwind utilities;
+
+      body {
+        background-color: #f5f1e8;
+        color: #4a3f35;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      #root {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .gold-text-effect {
+        background: linear-gradient(to bottom, #b08d26 0%, #d4af37 50%, #8b6b1d 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0px 1px 1px rgba(0,0,0,0.1));
+      }
+
+      .gold-border-gradient {
+        border: 2px solid transparent;
+        background: linear-gradient(#f5f1e8, #f5f1e8) padding-box,
+                    linear-gradient(to bottom, #f3e5ab, #d4af37, #b08d26) border-box;
+      }
+
+      .gold-icon-btn {
+        @apply w-12 h-12 rounded-full border border-dr-gold/60 flex items-center justify-center text-dr-gold transition-all duration-300 bg-white/50 backdrop-blur-sm;
+      }
+
+      .gold-icon-btn:hover {
+        @apply border-dr-gold shadow-[0_0_15px_rgba(212,175,55,0.4)] scale-110 bg-white;
+      }
+
+      @keyframes pulse-gold {
+        0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+        70% { box-shadow: 0 0 0 20px rgba(212, 175, 55, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+      }
+
+      .gold-play-btn {
+        @apply w-20 h-20 rounded-full flex items-center justify-center text-white transition-all duration-300;
+        background: linear-gradient(135deg, #f3e5ab 0%, #d4af37 50%, #b08d26 100%);
+        box-shadow: 0 10px 25px rgba(212, 175, 55, 0.5);
+        animation: pulse-gold 2s infinite;
+      }
+
+      .gold-play-btn:hover {
+        @apply scale-110;
+        box-shadow: 0 15px 35px rgba(212, 175, 55, 0.7);
+        filter: brightness(1.1);
+      }
+
+      .shadow-gold-glow {
+        box-shadow: 0 0 15px rgba(212,175,55,0.4);
+      }
+      
+      .shadow-gold-glow-lg {
+        box-shadow: 0 0 30px rgba(212,175,55,0.6);
+      }
+
+      .dark-player-bg {
+        background-color: #0a0a0a;
+        background-image: url('https://www.transparenttextures.com/patterns/dark-leather.png');
+      }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "lucide-react": "https://esm.sh/lucide-react@0.460.0",
+    "three": "https://esm.sh/three@0.170.0",
+    "@react-three/fiber": "https://esm.sh/@react-three/fiber@9.0.0-rc.0?external=three,react,react-dom",
+    "@react-three/drei": "https://esm.sh/@react-three/drei@9.117.3?external=three,react,react-dom,@react-three/fiber",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
