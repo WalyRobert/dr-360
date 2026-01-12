@@ -2,8 +2,6 @@ import React, { useState, useCallback } from 'react';
 import LandingPage from './components/LandingPage';
 import VideoPlayer from './components/VideoPlayer';
 
-const GOOGLE_STUDIO_URL = 'https://ai.studio/apps/drive/1YJu-PnuwAaHhj7NSugpM2wL8IBnql5tc';
-
 const App: React.FC = () => {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [videoName, setVideoName] = useState<string>('');
@@ -28,17 +26,12 @@ const App: React.FC = () => {
     setVideoName('');
   };
 
-  const handleStartClick = () => {
-    window.location.href = GOOGLE_STUDIO_URL;
-  };
-
   return (
     <div className="w-full h-screen bg-dr-black text-dr-offwhite overflow-hidden">
       {!videoSrc ? (
         <LandingPage 
           onUpload={handleVideoUpload} 
           onUrlSubmit={handleUrlSubmit}
-          onStartClick={handleStartClick}
         />
       ) : (
         <VideoPlayer 
