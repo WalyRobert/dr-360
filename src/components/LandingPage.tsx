@@ -1,10 +1,10 @@
-
 import React, { useRef, useState } from 'react';
 import { Folder, Play, Volume2, Link } from 'lucide-react';
 
 interface LandingPageProps {
   onUpload: (file: File) => void;
   onUrlSubmit?: (url: string) => void;
+  onStartClick?: () => void;
 }
 
 const DR360Logo = () => (
@@ -30,7 +30,6 @@ const DR360Logo = () => (
       >
         DR
       </text>
-
       {/* 360 Text with Degree Symbol */}
       <text 
         x="215" 
@@ -44,7 +43,6 @@ const DR360Logo = () => (
       >
         360°
       </text>
-
       {/* Elegant Separator Line */}
       <rect x="215" y="95" width="45" height="1.5" fill="url(#goldGrad)" opacity="0.6" />
       
@@ -61,7 +59,7 @@ const DR360Logo = () => (
   </div>
 );
 
-const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit, onStartClick }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
@@ -69,7 +67,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // In App.tsx, this calls URL.createObjectURL(file) as requested
       onUpload(file);
     }
   };
@@ -81,7 +78,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center p-4">
-      {/* Main Container - The Square with SHARP corners and gold border */}
+      {/* Main Container */}
       <div className="relative w-full max-w-[900px] aspect-square gold-border-gradient rounded-none flex flex-col items-center justify-center py-10 px-12 shadow-[0_20px_60px_rgba(74,63,53,0.15)] overflow-hidden">
         
         {/* Branding Section */}
@@ -94,11 +91,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
             Luxury Immersive Vision
           </p>
         </div>
-
+        
         {/* Central Premium Control Hub */}
         <div className="relative flex flex-col items-center justify-center w-full max-w-lg">
           
-          {/* URL Input overlay (Premium) - Optional path */}
+          {/* URL Input overlay */}
           {showUrlInput && (
             <div className="absolute -top-32 inset-x-0 animate-fade-in-up bg-white/95 backdrop-blur-md p-6 rounded-none border border-dr-gold/30 z-30 shadow-2xl">
               <form onSubmit={handleUrlSubmit} className="flex gap-4">
@@ -115,7 +112,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
               </form>
             </div>
           )}
-
+          
+          {/* START Button at Top */}
+          {onStartClick && (
+            <button
+              onClick={onStartClick}
+              className="mb-8 px-8 py-3 bg-gradient-to-r from-dr-gold to-dr-goldLight text-dr-black font-serif font-bold text-lg rounded-none shadow-[0_10px_30px_rgba(212,175,55,0.3)] hover:shadow-[0_15px_40px_rgba(212,175,55,0.5)] transition-all duration-300 hover:scale-105"
+              aria-label="Start DR360 App"
+            >
+              START
+            </button>
+          )}
+          
           {/* All buttons clustered together */}
           <div className="flex items-center justify-center space-x-4 md:space-x-8">
             <div className="flex items-center space-x-4">
@@ -134,8 +142,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
                 <Link size={20} />
               </button>
             </div>
-
-            {/* Central Large Play Button - Now triggers file picker as requested */}
+            
+            {/* Central Large Play Button */}
             <button 
               onClick={() => fileInputRef.current?.click()} 
               className="gold-play-btn z-10"
@@ -143,7 +151,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
             >
               <Play size={40} fill="currentColor" />
             </button>
-
+            
             <div className="flex items-center space-x-4">
               <button className="gold-icon-btn shadow-gold-glow" title="Volume">
                 <Volume2 size={20} />
@@ -153,25 +161,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
               </button>
             </div>
           </div>
-
-          {/* Mini Seek Bar directly under the buttons */}
+          
+          {/* Mini Seek Bar */}
           <div className="w-64 mt-12 flex items-center space-x-3 opacity-50">
             <span className="text-[10px] text-dr-brown/40 font-serif">0:00</span>
             <div className="flex-1 h-[1px] bg-dr-gold/20 relative">
-               <div className="absolute top-0 left-0 h-full w-1/3 bg-dr-gold"></div>
+              <div className="absolute top-0 left-0 h-full w-1/3 bg-dr-gold"></div>
             </div>
             <span className="text-[10px] text-dr-brown/40 font-serif">-360</span>
           </div>
         </div>
-
+        
         {/* Decorative footer text */}
         <div className="absolute bottom-10 text-center">
-           <p className="text-[8px] text-dr-brown/20 tracking-[0.8em] uppercase">
-             Excellence in Motion
-           </p>
+          <p className="text-[8px] text-dr-brown/20 tracking-[0.8em] uppercase">
+            Excellence in Motion
+          </p>
         </div>
       </div>
-
+      
       <input
         type="file"
         ref={fileInputRef}
