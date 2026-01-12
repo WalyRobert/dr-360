@@ -4,7 +4,6 @@ import { Folder, Play, Volume2, Link } from 'lucide-react';
 interface LandingPageProps {
   onUpload: (file: File) => void;
   onUrlSubmit?: (url: string) => void;
-  onStartClick?: () => void;
 }
 
 const DR360Logo = () => (
@@ -59,7 +58,7 @@ const DR360Logo = () => (
   </div>
 );
 
-const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit, onStartClick }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
@@ -113,16 +112,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onUpload, onUrlSubmit, onStar
             </div>
           )}
           
-          {/* START Button at Top */}
-          {onStartClick && (
-            <button
-              onClick={onStartClick}
-              className="mb-8 px-8 py-3 bg-gradient-to-r from-dr-gold to-dr-goldLight text-dr-black font-serif font-bold text-lg rounded-none shadow-[0_10px_30px_rgba(212,175,55,0.3)] hover:shadow-[0_15px_40px_rgba(212,175,55,0.5)] transition-all duration-300 hover:scale-105"
-              aria-label="Start DR360 App"
-            >
-              START
-            </button>
-          )}
+          {/* START Button - Direct Link to Google AI Studio */}
+          <a
+            href="https://ai.studio/apps/drive/1YJu-PnuwAaHhj7NSugpM2wL8IBnql5tc"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-8 inline-block px-8 py-3 bg-gradient-to-r from-dr-gold to-dr-goldLight text-dr-black font-serif font-bold text-lg rounded-none shadow-[0_10px_30px_rgba(212,175,55,0.3)] hover:shadow-[0_15px_40px_rgba(212,175,55,0.5)] transition-all duration-300 hover:scale-105"
+            aria-label="Start DR360 App"
+          >
+            START
+          </a>
           
           {/* All buttons clustered together */}
           <div className="flex items-center justify-center space-x-4 md:space-x-8">
