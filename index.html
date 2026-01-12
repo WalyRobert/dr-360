@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DR360° - Dodge Recian - Cinema Imersivo 360°</title>
+    <title>DR360° - Dodge Recian</title>
     <style>
         * {
             margin: 0;
@@ -24,7 +24,6 @@
             position: relative;
         }
 
-        /* Efeito de cortina de cinema */
         .curtain {
             position: fixed;
             top: 0;
@@ -36,7 +35,6 @@
             z-index: 1;
         }
 
-        /* Fundo estilo cinema */
         .cinema-bg {
             position: fixed;
             top: 0;
@@ -60,7 +58,6 @@
             max-width: 800px;
         }
 
-        /* Logo estilo cinema */
         .logo {
             font-size: 120px;
             font-weight: 900;
@@ -94,20 +91,11 @@
         .subtitle {
             font-size: 18px;
             letter-spacing: 2px;
-            margin-bottom: 50px;
+            margin-bottom: 60px;
             color: #FFD700;
             text-transform: uppercase;
         }
 
-        .description {
-            font-size: 18px;
-            color: #ddd;
-            margin-bottom: 60px;
-            line-height: 1.8;
-            font-style: italic;
-        }
-
-        /* Botão estilo cinema */
         .btn-cinema {
             display: inline-block;
             padding: 20px 60px;
@@ -150,7 +138,6 @@
             transform: scale(0.98);
         }
 
-        /* Efeito de iluminação */
         .lights {
             position: fixed;
             top: 0;
@@ -188,7 +175,6 @@
             50% { opacity: 0.8; transform: translate(20px, 20px); }
         }
 
-        /* Linha horizontal estilo cinema */
         .cinema-line {
             width: 200px;
             height: 2px;
@@ -221,19 +207,14 @@
         <div class="logo">DR360°</div>
         <div class="title">DODGE RECIAN</div>
         <div class="cinema-line"></div>
-        <div class="subtitle">CINEMA IMERSIVO 360°</div>
-        <p class="description">
-            Experimente a época de ouro do cinema em realção total.<br>
-            Uma jornada visual extraordinária que desafia os limites da realidade.
-        </p>
-        <button class="btn-cinema" onclick="window.location.href='https://dr-360.vercel.app/'">ENTRAR NO CINEMA</button>
+        <div class="subtitle">360° IMMERSIVE PLAYER</div>
+        <button class="btn-cinema" onclick="window.location.href='https://dr-360.vercel.app/'">START</button>
         <div class="cinema-line"></div>
     </div>
 
-    <div class="footer">Premium 360° Immersive Experience</div>
+    <div class="footer">Premium 360° Experience</div>
 
     <script>
-        // Auto-redirect após 5 segundos
         setTimeout(() => {
             window.location.href = 'https://dr-360.vercel.app/';
         }, 5000);
