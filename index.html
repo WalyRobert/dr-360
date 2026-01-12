@@ -2,9 +2,15 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0;url=https://dr-360.vercel.app/">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DR360° - Dodge Recian - Player 360 Imersivo</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
@@ -12,45 +18,152 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
             color: #fff;
         }
+
         .container {
             text-align: center;
-            padding: 20px;
+            padding: 40px 20px;
+            max-width: 600px;
         }
+
+        .logo-section {
+            margin-bottom: 40px;
+        }
+
         h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #D4AF37 0%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            letter-spacing: -2px;
+        }
+
+        h2 {
+            font-size: 28px;
             margin-bottom: 20px;
-            font-size: 32px;
+            color: #e0e0e0;
+            font-weight: 600;
         }
-        p {
-            margin-bottom: 30px;
+
+        .description {
             font-size: 16px;
-            opacity: 0.8;
+            color: #b0b0b0;
+            margin-bottom: 40px;
+            line-height: 1.6;
         }
-        a {
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
             display: inline-block;
-            padding: 12px 30px;
+        }
+
+        .btn-primary {
             background: linear-gradient(135deg, #D4AF37 0%, #ffd700 100%);
             color: #000;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: 600;
-            transition: transform 0.3s;
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
         }
-        a:hover {
-            transform: scale(1.05);
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(212, 175, 55, 0.15);
+            color: #D4AF37;
+            border: 2px solid #D4AF37;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(212, 175, 55, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #D4AF37;
+        }
+
+        .loading.show {
+            display: block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>DR360° - Dodge Recian</h1>
-        <h2>Player 360° Imersivo</h2>
-        <p>Redirecionando para o aplicativo...</p>
+        <div class="logo-section">
+            <h1>DR360°</h1>
+            <h2>Dodge Recian</h2>
+        </div>
+        
+        <p class="description">
+            Player de vídeo 360° imersivo com Head Tracking e modo VR
+        </p>
 
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="abrirApp()">🎬 Abrir Aplicativo</button>
+            <a href="https://github.com/WalyRobert/dr-360" class="btn btn-secondary" target="_blank">GitHub</a>
+        </div>
+
+        <div class="loading" id="loading">Redirecionando para o aplicativo...</div>
+
+        <div class="info-text">
+            <p>Powered by React + Three.js | Hosted on Vercel</p>
+        </div>
     </div>
+
     <script>
+        function abrirApp() {
+            const btn = event.target;
+            btn.disabled = true;
+            document.getElementById('loading').classList.add('show');
+            
+            setTimeout(() => {
+                window.location.href = 'https://dr-360.vercel.app/';
+            }, 500);
+        }
+
+        setTimeout(() => {
+            window.location.href = 'https://dr-360.vercel.app/';
+        }, 3000);
     </script>
 </body>
 </html>
