@@ -21,22 +21,6 @@
       overflow: hidden;
       position: relative;
     }
-    /* Marca d'água do Logo */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 400px;
-      height: 400px;
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><style>.logo-text { font-family: Arial, sans-serif; font-size: 48px; font-weight: bold; fill: %23d4af37; opacity: 0.15; }</style></defs><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" class="logo-text">DR 360°</text></svg>');
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: contain;
-      pointer-events: none;
-      z-index: 1;
-    }
     .container {
       text-align: center;
       max-width: 700px;
@@ -153,6 +137,20 @@
       margin: 10px 0;
       line-height: 1.8;
     }
+    /* Marca d'água texto simples */
+    .watermark {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 48px;
+      font-weight: bold;
+      color: rgba(212, 175, 55, 0.1);
+      pointer-events: none;
+      z-index: 1;
+      text-shadow: -1px -1px 2px rgba(0, 0, 0, 0.3);
+      user-select: none;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -163,6 +161,9 @@
       <span>🌟 O que é o DR360°? O DR360° é um player de vídeo imersivo em 360 graus que oferece uma experiência visual única para o Dodge Recian. Veja cada detalhe do seu veículo sob todos os ângulos. ✨</span>
     </div>
   </div>
+
+  <!-- Marca d'água -->
+  <div class="watermark">DR 360°</div>
 
   <div class="container">
     <div class="logo">DR 360°</div>
