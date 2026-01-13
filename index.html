@@ -17,7 +17,7 @@
     }
     .container {
       text-align: center;
-      max-width: 600px;
+      max-width: 700px;
       width: 90%;
     }
     .logo {
@@ -34,9 +34,15 @@
       font-weight: 300;
       letter-spacing: 4px;
     }
+    .subtitle {
+      color: #a0a0a0;
+      font-size: 16px;
+      margin: 0 0 15px 0;
+      letter-spacing: 2px;
+    }
     p {
       color: #a0a0a0;
-      font-size: 18px;
+      font-size: 16px;
       margin: 0 0 40px 0;
       line-height: 1.6;
     }
@@ -45,6 +51,7 @@
       gap: 20px;
       justify-content: center;
       flex-wrap: wrap;
+      margin-bottom: 50px;
     }
     .btn {
       padding: 16px 48px;
@@ -66,18 +73,28 @@
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(212, 175, 55, 0.4);
     }
-    .btn-secondary {
-      background: transparent;
-      color: #d4af37;
-      border: 2px solid #d4af37;
+    .info-section {
+      background: rgba(212, 175, 55, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 8px;
+      padding: 30px;
+      margin: 30px 0;
+      text-align: left;
     }
-    .btn-secondary:hover {
-      background: #d4af37;
-      color: #1a1a1a;
-      transform: translateY(-2px);
+    .info-section h2 {
+      color: #d4af37;
+      font-size: 18px;
+      margin: 0 0 15px 0;
+      text-align: center;
+    }
+    .info-section p {
+      color: #a0a0a0;
+      font-size: 14px;
+      margin: 10px 0;
+      line-height: 1.8;
     }
     .features {
-      margin-top: 60px;
+      margin-top: 50px;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 30px;
@@ -87,28 +104,51 @@
       font-size: 14px;
       line-height: 1.5;
     }
+    .feature strong {
+      color: #d4af37;
+      display: block;
+      margin-bottom: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="logo">DR 360°</div>
     <h1>Dodge Recian</h1>
-    <p>Luxury Immersive Vision</p>
-    <p>Experience 360° viewing with advanced tracking and VR support</p>
+    <p class="subtitle">Visão Imersiva de Luxo</p>
+    <p>Desfrute da visualização em 360° com rastreamento avançado e suporte VR</p>
     
     <div class="button-container">
       <button class="btn btn-primary" onclick="goToApp()">START</button>
     </div>
+
+    <div class="info-section">
+      <h2>🌟 O que é o DR360°?</h2>
+      <p>O DR360° é um player de vídeo imersivo em 360 graus que oferece uma experiência visual única para o Dodge Recian. Veja cada detalhe do seu veículo sob todos os ângulos.</p>
+      
+      <h2 style="margin-top: 25px;">💻 Como Usar</h2>
+      <p><strong>1. Clique no botão "START"</strong> - Abrirá o aplicativo em tela cheia</p>
+      <p><strong>2. Use o mouse/tela tátil</strong> - Arraste para girar a câmera em 360°</p>
+      <p><strong>3. Zoom</strong> - Use a roda do mouse ou pizza para aproximar/afastar</p>
+      <p><strong>4. Modo VR</strong> - Se disponível, use seu dispositivo VR para imersão completa</p>
+      <p><strong>5. Rastreamento de Cabeça</strong> - Com um headset VR, mova sua cabeça para controlar a visualização</p>
+      
+      <h2 style="margin-top: 25px;">✨ Recursos</h2>
+      <p>• <strong>360° Full View</strong> - Visualização completa do veículo em alta resolução</p>
+      <p>• <strong>Qualidade HD</strong> - Vídeos em alta definição para melhor experiência</p>
+      <p>• <strong>Compatibilidade VR</strong> - Funciona com óculos de realidade virtual</p>
+      <p>• <strong>Rastreamento de Cabeça</strong> - Controle intuitivo com movimento da cabeça</p>
+    </div>
     
     <div class="features">
       <div class="feature">
-        <strong>360°</strong><br>Full View
+        <strong>360°</strong><br>Visualização Completa
       </div>
       <div class="feature">
-        <strong>HD</strong><br>High Quality
+        <strong>HD</strong><br>Alta Qualidade
       </div>
       <div class="feature">
-        <strong>VR</strong><br>Compatible
+        <strong>VR</strong><br>Compatível
       </div>
     </div>
   </div>
