@@ -139,18 +139,19 @@
     }
     /* Marca d'água texto simples */
     .watermark {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      font-size: 48px;
-      font-weight: bold;
-      color: rgba(212, 175, 55, 0.1);
-      pointer-events: none;
-      z-index: 1;
-      text-shadow: -1px -1px 2px rgba(0, 0, 0, 0.3);
-      user-select: none;
-      font-style: italic;
-    }
+          position: fixed;
+top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: auto 75%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+          background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="80" fill="none" stroke="%23d4af37" stroke-width="2" opacity="0.3"/></svg>');
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 0    }
   </style>
 </head>
 <body>
