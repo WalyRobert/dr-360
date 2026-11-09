@@ -1,3 +1,5 @@
+[Português](README.md) · [Español](README.es.md)
+
 # DR 360° — Player de vídeo imersivo
 
 **Idioma:** Português (Brasil)  
