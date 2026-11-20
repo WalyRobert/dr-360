@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useThree, useFrame, extend } from '@react-three/fiber';
 import { OrbitControls, DeviceOrientationControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
+import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { ViewMode, QualitySettings } from '../types';
 
 interface SceneProps {
@@ -10,7 +11,8 @@ interface SceneProps {
   zoom: number;
   headTracking: boolean;
   quality: QualitySettings;
-  isVR: boolean;
+  onXrActiveChange: (active: boolean) => void;
+  onXrSessionChange: (session: XRSession | null) => void;
 }
 
 const VideoMaterial = shaderMaterial(
@@ -73,22 +75,144 @@ const Scene: React.FC<SceneProps> = ({
   zoom, 
   headTracking, 
   quality,
-  isVR
+  onXrActiveChange,
+  onXrSessionChange
 }) => {
-  const { camera, gl, size, scene } = useThree();
+  const { camera, gl, scene, size } = useThree();
+  const [xrActive, setXrActive] = useState(false);
   const materialRef = useRef<any>(null);
   const textureRef = useRef<THREE.VideoTexture | null>(null);
+  const xrExitPanelRef = useRef<THREE.Mesh | null>(null);
 
   useEffect(() => {
-    if (!isVR) {
-      gl.setViewport(0, 0, size.width, size.height);
-      gl.setScissorTest(false);
-      if (camera instanceof THREE.PerspectiveCamera) {
-        camera.aspect = size.width / size.height;
-        camera.updateProjectionMatrix();
+    gl.xr.enabled = true;
+
+    const handleSessionStart = () => {
+      setXrActive(true);
+      onXrActiveChange(true);
+      onXrSessionChange(gl.xr.getSession());
+      createXrExitControl();
+    };
+    const handleSessionEnd = () => {
+      setXrActive(false);
+      onXrActiveChange(false);
+      onXrSessionChange(null);
+      removeXrExitControl();
+    };
+    gl.xr.addEventListener('sessionstart', handleSessionStart);
+    gl.xr.addEventListener('sessionend', handleSessionEnd);
+
+    let disposed = false;
+    let button: HTMLElement | null = null;
+    let xrExitTexture: THREE.CanvasTexture | null = null;
+    const xrControllerCleanups: Array<() => void> = [];
+    const buttonHost = gl.domElement.parentElement;
+    const xr = (navigator as Navigator & { xr?: XRSystem }).xr;
+
+    const removeXrExitControl = () => {
+      for (const cleanup of xrControllerCleanups.splice(0)) cleanup();
+      const panel = xrExitPanelRef.current;
+      if (!panel) return;
+      scene.remove(panel);
+      panel.geometry.dispose();
+      (panel.material as THREE.Material).dispose();
+      xrExitPanelRef.current = null;
+      xrExitTexture?.dispose();
+      xrExitTexture = null;
+    };
+
+    const createXrExitControl = () => {
+      if (xrExitPanelRef.current) return;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 128;
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      context.fillStyle = 'rgba(8, 8, 8, 0.94)';
+      context.strokeStyle = '#d4af37';
+      context.lineWidth = 5;
+      context.beginPath();
+      context.roundRect(4, 4, 504, 120, 24);
+      context.fill();
+      context.stroke();
+      context.fillStyle = '#f0d780';
+      context.font = 'bold 38px sans-serif';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText('SAIR DA IMERSÃO', 256, 66);
+
+      xrExitTexture = new THREE.CanvasTexture(canvas);
+      xrExitTexture.colorSpace = THREE.SRGBColorSpace;
+      const material = new THREE.MeshBasicMaterial({
+        map: xrExitTexture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthTest: false,
+      });
+      const panel = new THREE.Mesh(new THREE.PlaneGeometry(0.82, 0.21), material);
+      panel.name = 'dr360-xr-exit-control';
+      panel.renderOrder = 999;
+      xrExitPanelRef.current = panel;
+      scene.add(panel);
+
+      for (let index = 0; index < 2; index += 1) {
+        const controller = gl.xr.getController(index);
+        const ray = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(0, 0, -2),
+          ]),
+          new THREE.LineBasicMaterial({ color: 0xd4af37, depthTest: false }),
+        );
+        ray.name = 'dr360-xr-pointer-ray';
+        controller.add(ray);
+        scene.add(controller);
+
+        const onSelect = () => {
+          const origin = controller.getWorldPosition(new THREE.Vector3());
+          const rotation = controller.getWorldQuaternion(new THREE.Quaternion());
+          const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(rotation).normalize();
+          const raycaster = new THREE.Raycaster(origin, direction, 0, 5);
+          if (xrExitPanelRef.current && raycaster.intersectObject(xrExitPanelRef.current).length > 0) {
+            void gl.xr.getSession()?.end().catch((error: unknown) => {
+              console.warn('Não foi possível encerrar a sessão VR pelo controle:', error);
+            });
+          }
+        };
+
+        controller.addEventListener('select', onSelect);
+        xrControllerCleanups.push(() => {
+          controller.removeEventListener('select', onSelect);
+          scene.remove(controller);
+          controller.remove(ray);
+          ray.geometry.dispose();
+          (ray.material as THREE.Material).dispose();
+        });
       }
+    };
+
+    if (xr && buttonHost) {
+      xr.isSessionSupported('immersive-vr').then((supported) => {
+        if (!supported || disposed) return;
+
+        button = VRButton.createButton(gl);
+        button.id = 'dr360-vr-button';
+        button.style.display = 'none';
+        buttonHost.appendChild(button);
+      }).catch((error: unknown) => {
+        console.warn('Não foi possível verificar o suporte a WebXR:', error);
+      });
     }
-  }, [isVR, gl, size, camera]);
+
+    return () => {
+      disposed = true;
+      gl.xr.removeEventListener('sessionstart', handleSessionStart);
+      gl.xr.removeEventListener('sessionend', handleSessionEnd);
+      removeXrExitControl();
+      button?.remove();
+    };
+  }, [gl, scene, onXrActiveChange, onXrSessionChange]);
 
   useEffect(() => {
     if (camera instanceof THREE.PerspectiveCamera) {
@@ -141,33 +265,24 @@ const Scene: React.FC<SceneProps> = ({
       textureRef.current.needsUpdate = true;
     }
 
-    if (camera instanceof THREE.PerspectiveCamera) {
-      if (isVR) {
-        gl.autoClear = false;
-        gl.clear();
-        const halfWidth = size.width / 2;
+    if (xrActive && xrExitPanelRef.current) {
+      const viewerCamera = gl.xr.getCamera();
+      const viewerPosition = viewerCamera.getWorldPosition(new THREE.Vector3());
+      const viewerRotation = viewerCamera.getWorldQuaternion(new THREE.Quaternion());
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(viewerRotation);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(viewerRotation);
+      xrExitPanelRef.current.position
+        .copy(viewerPosition)
+        .addScaledVector(forward, 1.35)
+        .addScaledVector(up, 0.34);
+      xrExitPanelRef.current.quaternion.copy(viewerRotation);
+    }
 
-        gl.setViewport(0, 0, halfWidth, size.height);
-        gl.setScissor(0, 0, halfWidth, size.height);
-        gl.setScissorTest(true);
-        camera.aspect = halfWidth / size.height;
+    if (!xrActive && camera instanceof THREE.PerspectiveCamera) {
+      const standardAspect = size.width / size.height;
+      if (Math.abs(camera.aspect - standardAspect) > 0.01) {
+        camera.aspect = standardAspect;
         camera.updateProjectionMatrix();
-        gl.render(scene, camera);
-
-        gl.setViewport(halfWidth, 0, halfWidth, size.height);
-        gl.setScissor(halfWidth, 0, halfWidth, size.height);
-        gl.setScissorTest(true);
-        camera.aspect = halfWidth / size.height;
-        camera.updateProjectionMatrix();
-        gl.render(scene, camera);
-      } else {
-        const standardAspect = size.width / size.height;
-        if (Math.abs(camera.aspect - standardAspect) > 0.01) {
-          gl.setViewport(0, 0, size.width, size.height);
-          gl.setScissorTest(false);
-          camera.aspect = standardAspect;
-          camera.updateProjectionMatrix();
-        }
       }
     }
   });
@@ -204,11 +319,12 @@ const Scene: React.FC<SceneProps> = ({
         <videoMaterial ref={materialRef} side={THREE.BackSide} transparent={false} />
       </mesh>
 
-      {headTracking ? (
+      {headTracking && !xrActive ? (
         <DeviceOrientationControls />
       ) : (
         <OrbitControls 
           makeDefault
+          enabled={!xrActive && !headTracking}
           enableZoom={false} 
           enablePan={false} 
           rotateSpeed={-0.6} 

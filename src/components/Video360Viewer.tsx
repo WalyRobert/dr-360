@@ -4,7 +4,7 @@ import { Canvas } from '@react-three/fiber';
 import { ViewMode, VideoState, PlayerSettings, QualitySettings } from '../types';
 import Scene from './Scene';
 import Controls from './Controls';
-import { Play, AlertCircle, RefreshCcw } from 'lucide-react';
+import { Play, AlertCircle, ChevronLeft, Minimize } from 'lucide-react';
 
 interface VideoPlayerProps {
   src: string;
@@ -16,8 +16,8 @@ interface VideoPlayerProps {
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFileChange }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const xrSessionRef = useRef<XRSession | null>(null);
 
   const [videoState, setVideoState] = useState<VideoState>({
     isPlaying: false,
@@ -53,6 +53,34 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   const [textureKey, setTextureKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const handleXrSessionChange = useCallback((session: XRSession | null) => {
+    xrSessionRef.current = session;
+  }, []);
+
+  const exitImmersive = useCallback(() => {
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+
+    const session = xrSessionRef.current;
+    if (session) {
+      void session.end().catch((error: unknown) => {
+        console.warn('Não foi possível encerrar a sessão VR:', error);
+      });
+    }
+
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch((error: unknown) => {
+        console.warn('Não foi possível sair da tela cheia:', error);
+      });
+    }
+
+    setControlsVisible(true);
+  }, []);
+
+  const handleBack = useCallback(() => {
+    exitImmersive();
+    onBack();
+  }, [exitImmersive, onBack]);
+
   const dpr = useMemo(() => {
     if (typeof window === 'undefined') return 1;
     switch (qualitySettings.resolution) {
@@ -66,7 +94,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   // Handle fullscreen state change
   useEffect(() => {
     const handleFsChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const fullscreen = !!document.fullscreenElement;
+      setIsFullscreen(fullscreen);
+      setControlsVisible(true);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
@@ -79,17 +110,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
         console.error(`Error attempting to enable full-screen mode: ${err.message}`);
       });
     } else {
-      document.exitFullscreen();
+      void document.exitFullscreen().catch((error: unknown) => {
+        console.error('Error attempting to exit full-screen mode:', error);
+      });
     }
   }, []);
 
   // Função para esconder os controles
   const startHideTimer = useCallback(() => {
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    if (isFullscreen || settings.isVR) {
+      setControlsVisible(true);
+      return;
+    }
     hideTimerRef.current = setTimeout(() => {
       setControlsVisible(false);
     }, 3000);
-  }, []);
+  }, [isFullscreen, settings.isVR]);
 
   const handleMouseMove = useCallback(() => {
     setControlsVisible(true);
@@ -101,19 +138,34 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     }
   }, [startHideTimer]);
 
-  // Modified togglePlay to open file picker and remove play/pause logic
-  const togglePlay = useCallback(() => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  }, []);
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' && event.key !== 'Backspace') return;
+      if (!document.fullscreenElement && !xrSessionRef.current) return;
+      event.preventDefault();
+      exitImmersive();
+    };
 
-  const handleLocalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onFileChange(file);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [exitImmersive]);
+
+  const togglePlay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+      void video.play().then(() => {
+        setNeedsInteraction(false);
+      }).catch((error: unknown) => {
+        console.warn('Não foi possível iniciar a reprodução:', error);
+        setNeedsInteraction(true);
+      });
+    } else {
+      video.pause();
     }
-  };
+    handleMouseMove();
+  }, [handleMouseMove]);
 
   const attemptPlay = useCallback(async () => {
     const video = videoRef.current;
@@ -237,9 +289,30 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   };
 
   const toggleVR = useCallback(() => {
-    setSettings(p => ({ ...p, isVR: !p.isVR }));
+    if (settings.isVR) {
+      exitImmersive();
+      return;
+    }
+
+    const video = videoRef.current;
+    if (video?.paused) {
+      void video.play().then(() => {
+        setNeedsInteraction(false);
+      }).catch((error: unknown) => {
+        console.warn('Não foi possível iniciar o vídeo antes do modo VR:', error);
+        setNeedsInteraction(true);
+      });
+    }
+
+    document.getElementById('dr360-vr-button')?.click();
     handleMouseMove();
-  }, [handleMouseMove]);
+  }, [exitImmersive, handleMouseMove, settings.isVR]);
+
+  const handleXrActiveChange = useCallback((active: boolean) => {
+    if (active && hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    setSettings((previous) => ({ ...previous, isVR: active }));
+    setControlsVisible(true);
+  }, []);
 
   const requestHeadTracking = async () => { 
     handleMouseMove();
@@ -278,16 +351,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     <div 
       ref={containerRef}
       onMouseMove={handleMouseMove}
+      onPointerMove={handleMouseMove}
+      onPointerDown={handleMouseMove}
+      onTouchStart={handleMouseMove}
       onMouseEnter={() => setControlsVisible(true)}
       className="relative w-full h-full dark-player-bg overflow-hidden select-none flex flex-col items-center justify-center"
     >
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleLocalFileChange} 
-        accept="video/*" 
-        className="hidden" 
-      />
       <video 
         ref={videoRef} 
         className="hidden"
@@ -301,8 +370,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
       
       <div className={`relative transition-all duration-700 ease-in-out bg-[#000] overflow-hidden ${settings.isVR || isFullscreen ? 'w-full h-full rounded-none border-none' : 'w-[98%] h-[90%] rounded-none gold-border-gradient shadow-[0_0_60px_rgba(212,175,55,0.2)]'}`}>
         {!loadError ? (
-          <Canvas 
-            className="w-full h-full cursor-move" 
+          <Canvas
             camera={{ position: [0, 0, 0.1], fov: 75 }} 
             dpr={dpr} 
             gl={{
@@ -320,7 +388,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
               zoom={settings.zoom} 
               headTracking={settings.headTracking} 
               quality={qualitySettings} 
-              isVR={settings.isVR}
+              onXrActiveChange={handleXrActiveChange}
+              onXrSessionChange={handleXrSessionChange}
             />
           </Canvas>
         ) : (
@@ -329,7 +398,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
             <h2 className="text-2xl font-serif gold-text-effect mb-4 uppercase tracking-widest text-dr-gold">Acesso Negado ou Erro</h2>
             <p className="text-dr-gray max-w-md mb-8 leading-relaxed">{loadError}</p>
             <div className="flex gap-4">
-              <button onClick={onBack} className="px-6 py-2 border border-dr-gold/30 text-dr-gold hover:bg-dr-gold/10 transition-colors uppercase text-xs font-bold tracking-widest">Voltar</button>
+              <button onClick={handleBack} className="px-6 py-2 border border-dr-gold/30 text-dr-gold hover:bg-dr-gold/10 transition-colors uppercase text-xs font-bold tracking-widest">Voltar</button>
               <button onClick={() => window.location.reload()} className="px-6 py-2 bg-dr-gold text-dr-black hover:bg-dr-goldLight transition-colors uppercase text-xs font-bold tracking-widest">Recarregar</button>
             </div>
           </div>
@@ -370,12 +439,33 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
         onViewModeChange={(mode) => { setSettings(s => ({ ...s, viewMode: mode })); handleMouseMove(); }}
         onHeadTrackingToggle={requestHeadTracking}
         onZoom={handleZoom}
-        onBack={onBack}
+        onBack={handleBack}
         onDownload={handleDownload}
         onFileChange={onFileChange}
         onQualityChange={(q) => { setQualitySettings(q); handleMouseMove(); }}
         onToggleFullscreen={toggleFullscreen}
       />
+
+      {isFullscreen && (
+        <div className="absolute inset-x-0 top-0 z-[60] flex items-center justify-between gap-3 p-4 pointer-events-none">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="pointer-events-auto inline-flex min-h-12 items-center gap-2 rounded-full border border-dr-gold/60 bg-black/85 px-5 py-3 text-sm font-bold uppercase tracking-wider text-dr-gold shadow-gold-glow"
+            aria-label="Sair do vídeo e voltar"
+          >
+            <ChevronLeft size={20} /> Voltar
+          </button>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="pointer-events-auto inline-flex min-h-12 items-center gap-2 rounded-full border border-dr-gold/60 bg-black/85 px-5 py-3 text-sm font-bold uppercase tracking-wider text-dr-gold shadow-gold-glow"
+            aria-label="Sair da tela cheia"
+          >
+            <Minimize size={18} /> Sair da tela cheia
+          </button>
+        </div>
+      )}
     </div>
   );
 };

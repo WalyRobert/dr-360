@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
-import VideoPlayer from './components/VideoPlayer';
+import VideoPlayer from './components/Video360Viewer';
 
 const App: React.FC = () => {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
@@ -12,6 +12,14 @@ const App: React.FC = () => {
     setVideoName(file.name);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (videoSrc?.startsWith('blob:')) {
+        URL.revokeObjectURL(videoSrc);
+      }
+    };
+  }, [videoSrc]);
+
   const handleUrlSubmit = useCallback((url: string) => {
     setVideoSrc(url);
     const name = url.split('/').pop() || 'Video Externo';
@@ -19,9 +27,6 @@ const App: React.FC = () => {
   }, []);
 
   const handleBackToHome = () => {
-    if (videoSrc?.startsWith('blob:')) {
-      URL.revokeObjectURL(videoSrc);
-    }
     setVideoSrc(null);
     setVideoName('');
   };
