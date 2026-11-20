@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useCallback } from 'react';
 import { 
-  Play, Pause, Volume2, VolumeX, Repeat, 
+  Play, Pause, Square, Volume2, VolumeX, Repeat,
   Smartphone, FileVideo, Glasses,
   ZoomIn, ZoomOut, Download, ChevronLeft, Settings,
   Monitor, Sliders, Zap, Check, Folder, Maximize, Minimize
@@ -16,6 +16,8 @@ interface ControlsProps {
   fileName: string;
   isFullscreen: boolean;
   onPlayPause: () => void;
+  onPause: () => void;
+  onStop: () => void;
   onSeek: (val: number) => void;
   onMute: () => void;
   onVolume: (val: number) => void;
@@ -40,6 +42,8 @@ const Controls: React.FC<ControlsProps> = ({
   fileName,
   isFullscreen,
   onPlayPause,
+  onPause,
+  onStop,
   onSeek,
   onMute,
   onVolume,
@@ -125,13 +129,36 @@ const Controls: React.FC<ControlsProps> = ({
                 />
               </div>
 
-              <button 
-                onClick={onPlayPause} 
-                className="text-dr-gold hover:scale-110 transition-transform bg-transparent flex items-center justify-center p-1"
-                title="Select Media Source"
-              >
-                <Play size={20} fill="currentColor" />
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  type="button"
+                  onClick={onPlayPause}
+                  className="text-dr-gold hover:scale-110 transition-transform bg-transparent flex items-center justify-center p-1"
+                  title={state.isPlaying ? 'Pausar vídeo' : 'Reproduzir vídeo'}
+                  aria-label={state.isPlaying ? 'Pausar vídeo' : 'Reproduzir vídeo'}
+                >
+                  {state.isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={onPause}
+                  disabled={!state.isPlaying}
+                  className="text-dr-gold hover:scale-110 transition-transform bg-transparent flex items-center justify-center p-1 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  title="Pausar vídeo"
+                  aria-label="Pausar vídeo"
+                >
+                  <Pause size={18} fill="currentColor" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onStop}
+                  className="text-dr-gold hover:scale-110 transition-transform bg-transparent flex items-center justify-center p-1"
+                  title="Parar e voltar ao início"
+                  aria-label="Parar vídeo e voltar ao início"
+                >
+                  <Square size={17} fill="currentColor" />
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center space-x-1.5">

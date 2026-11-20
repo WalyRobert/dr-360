@@ -167,6 +167,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     handleMouseMove();
   }, [handleMouseMove]);
 
+  const pausePlayback = useCallback(() => {
+    videoRef.current?.pause();
+    handleMouseMove();
+  }, [handleMouseMove]);
+
+  const stopPlayback = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.pause();
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      video.currentTime = 0;
+    }
+
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    setControlsVisible(true);
+    setVideoState(previous => ({ ...previous, isPlaying: false, currentTime: 0, progress: 0 }));
+  }, []);
+
   const attemptPlay = useCallback(async () => {
     const video = videoRef.current;
     if (!video) return;
@@ -430,6 +449,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
         fileName={fileName}
         isFullscreen={isFullscreen}
         onPlayPause={togglePlay}
+        onPause={pausePlayback}
+        onStop={stopPlayback}
         onSeek={handleSeek}
         onMute={toggleMute}
         onVolume={handleVolume}
