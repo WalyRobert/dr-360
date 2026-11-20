@@ -16,7 +16,6 @@ interface ControlsProps {
   fileName: string;
   isFullscreen: boolean;
   onPlayPause: () => void;
-  onPause: () => void;
   onStop: () => void;
   onSeek: (val: number) => void;
   onMute: () => void;
@@ -42,7 +41,6 @@ const Controls: React.FC<ControlsProps> = ({
   fileName,
   isFullscreen,
   onPlayPause,
-  onPause,
   onStop,
   onSeek,
   onMute,
@@ -138,16 +136,6 @@ const Controls: React.FC<ControlsProps> = ({
                   aria-label={state.isPlaying ? 'Pausar vídeo' : 'Reproduzir vídeo'}
                 >
                   {state.isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={onPause}
-                  disabled={!state.isPlaying}
-                  className="text-dr-gold hover:scale-110 transition-transform bg-transparent flex items-center justify-center p-1 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  title="Pausar vídeo"
-                  aria-label="Pausar vídeo"
-                >
-                  <Pause size={18} fill="currentColor" />
                 </button>
                 <button
                   type="button"
