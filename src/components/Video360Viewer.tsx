@@ -37,7 +37,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     headTracking: false,
     isVR: false,
     poleCapsEnabled: true,
-    poleCapDiameter: 1,
+    poleCapDiameter: 1.6,
   });
 
   const [qualitySettings, setQualitySettings] = useState<QualitySettings>({
