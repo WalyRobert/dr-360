@@ -214,6 +214,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
 
     const onLoadedMetadata = () => {
       setVideoState(prev => ({ ...prev, duration: video.duration }));
+      const aspectRatio = video.videoWidth / video.videoHeight;
+      // 2:1 is the usual equirectangular layout for 360° video. Other
+      // aspect ratios default to a flat screen and can be changed manually.
+      const detectedMode = aspectRatio >= 1.9 && aspectRatio <= 2.1
+        ? ViewMode.Mode360
+        : ViewMode.ModeFlat;
+      setSettings(prev => ({ ...prev, viewMode: detectedMode }));
       attemptPlay();
     };
     

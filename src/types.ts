@@ -2,6 +2,7 @@ export enum ViewMode {
   Mode360 = '360',
   Mode180 = '180',
   Mode120 = '120',
+  ModeFlat = 'flat',
 }
 
 export interface VideoState {

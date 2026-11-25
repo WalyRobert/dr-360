@@ -1,5 +1,5 @@
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { 
   Play, Pause, Square, Volume2, VolumeX, Repeat,
   Smartphone, FileVideo, Glasses,
@@ -64,6 +64,12 @@ const Controls: React.FC<ControlsProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<'adjust' | 'quality' | 'poles'>('quality');
+
+  useEffect(() => {
+    if (settings.viewMode !== ViewMode.Mode360 && activeTab === 'poles') {
+      setActiveTab('quality');
+    }
+  }, [settings.viewMode, activeTab]);
 
   const formatTime = useCallback((time: number) => {
     const minutes = Math.floor(time / 60);
@@ -154,13 +160,13 @@ const Controls: React.FC<ControlsProps> = ({
             </div>
 
             <div className="flex items-center space-x-1.5">
-              {[ViewMode.Mode360, ViewMode.Mode180, ViewMode.Mode120].map((m) => (
+              {[ViewMode.Mode360, ViewMode.Mode180, ViewMode.Mode120, ViewMode.ModeFlat].map((m) => (
                 <button 
                   key={m} 
                   onClick={() => onViewModeChange(m)} 
                   className={`px-2 py-1 text-[7px] font-bold border rounded-none transition-all uppercase bg-transparent ${settings.viewMode === m ? 'border-dr-gold text-dr-gold shadow-gold-glow' : 'border-dr-gold/20 text-dr-gray hover:border-dr-gold/50'}`}
                 >
-                  {m}°
+                  {m === ViewMode.ModeFlat ? 'TELA' : `${m}°`}
                 </button>
               ))}
             </div>
@@ -211,7 +217,9 @@ const Controls: React.FC<ControlsProps> = ({
         <div className="flex border-b border-dr-gold/10">
           <button onClick={() => setActiveTab('quality')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'quality' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Output</button>
           <button onClick={() => setActiveTab('adjust')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'adjust' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Color</button>
-          <button onClick={() => setActiveTab('poles')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'poles' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Polos</button>
+          {settings.viewMode === ViewMode.Mode360 && (
+            <button onClick={() => setActiveTab('poles')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'poles' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Polos</button>
+          )}
         </div>
         <div className="p-6 space-y-4">
           {activeTab === 'quality' ? (
@@ -235,7 +243,7 @@ const Controls: React.FC<ControlsProps> = ({
                  </div>
                ))}
             </div>
-          ) : (
+          ) : activeTab === 'poles' && settings.viewMode === ViewMode.Mode360 ? (
             <div className="space-y-4">
               <button
                 type="button"
@@ -265,6 +273,10 @@ const Controls: React.FC<ControlsProps> = ({
                   Discos escuros cobrem as regiões superior e inferior no modo 360°.
                 </p>
               </div>
+            </div>
+          ) : (
+            <div className="text-[9px] leading-relaxed text-dr-gray">
+              Ajuste o modo de exibição nos controles do player. Os discos dos polos aparecem apenas no modo 360°.
             </div>
           )}
         </div>

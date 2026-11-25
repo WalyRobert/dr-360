@@ -262,7 +262,7 @@ const Scene: React.FC<SceneProps> = ({
       texture.dispose();
       textureRef.current = null;
     };
-  }, [videoElement]);
+  }, [videoElement, viewMode]);
 
   useFrame(() => {
     if (textureRef.current && videoElement && videoElement.readyState >= 2) {
@@ -315,13 +315,27 @@ const Scene: React.FC<SceneProps> = ({
     return [radius, widthSegments, heightSegments, 0, Math.PI * 2, 0, Math.PI];
   };
 
+  const videoAspectRatio = videoElement?.videoWidth && videoElement.videoHeight
+    ? videoElement.videoWidth / videoElement.videoHeight
+    : 16 / 9;
+  const screenWidth = Math.min(3, 1.8 * videoAspectRatio);
+  const screenHeight = screenWidth / videoAspectRatio;
+
   return (
     <>
-      <mesh scale={[-1, 1, 1]} rotation={[0, Math.PI, 0]}>
-        <sphereGeometry args={getGeometryArgs()} />
-        {/* @ts-ignore */}
-        <videoMaterial ref={materialRef} side={THREE.BackSide} transparent={false} />
-      </mesh>
+      {viewMode === ViewMode.ModeFlat ? (
+        <mesh position={[0, 0, -3]}>
+          <planeGeometry args={[screenWidth, screenHeight]} />
+          {/* @ts-ignore */}
+          <videoMaterial ref={materialRef} side={THREE.DoubleSide} transparent={false} />
+        </mesh>
+      ) : (
+        <mesh scale={[-1, 1, 1]} rotation={[0, Math.PI, 0]}>
+          <sphereGeometry args={getGeometryArgs()} />
+          {/* @ts-ignore */}
+          <videoMaterial ref={materialRef} side={THREE.BackSide} transparent={false} />
+        </mesh>
+      )}
 
       {poleCapsEnabled && viewMode === ViewMode.Mode360 && (
         <>
