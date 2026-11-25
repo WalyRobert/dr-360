@@ -14,6 +14,7 @@ interface SceneProps {
   quality: QualitySettings;
   onXrActiveChange: (active: boolean) => void;
   onXrSessionChange: (session: XRSession | null) => void;
+  onXrSessionStarterReady: (starter: (() => Promise<void>) | null) => void;
 }
 
 const VideoMaterial = shaderMaterial(
@@ -79,7 +80,8 @@ const Scene: React.FC<SceneProps> = ({
   poleCapDiameter,
   quality,
   onXrActiveChange,
-  onXrSessionChange
+  onXrSessionChange,
+  onXrSessionStarterReady
 }) => {
   const { camera, gl, scene, size } = useThree();
   const [xrActive, setXrActive] = useState(false);
@@ -105,12 +107,20 @@ const Scene: React.FC<SceneProps> = ({
     gl.xr.addEventListener('sessionstart', handleSessionStart);
     gl.xr.addEventListener('sessionend', handleSessionEnd);
 
-    let disposed = false;
-    let button: HTMLButtonElement | null = null;
     let xrExitTexture: THREE.CanvasTexture | null = null;
     const xrControllerCleanups: Array<() => void> = [];
-    const buttonHost = gl.domElement.parentElement;
     const xr = (navigator as Navigator & { xr?: XRSystem }).xr;
+
+    if (xr) {
+      onXrSessionStarterReady(async () => {
+        const session = await xr.requestSession('immersive-vr', {
+          optionalFeatures: ['local-floor', 'bounded-floor', 'layers'],
+        });
+        await gl.xr.setSession(session);
+      });
+    } else {
+      onXrSessionStarterReady(null);
+    }
 
     const removeXrExitControl = () => {
       for (const cleanup of xrControllerCleanups.splice(0)) cleanup();
@@ -195,36 +205,13 @@ const Scene: React.FC<SceneProps> = ({
       }
     };
 
-    if (xr && buttonHost) {
-      xr.isSessionSupported('immersive-vr').then((supported) => {
-        if (!supported || disposed) return;
-
-        button = document.createElement('button');
-        button.id = 'dr360-vr-button';
-        button.type = 'button';
-        button.setAttribute('aria-hidden', 'true');
-        button.style.setProperty('display', 'none', 'important');
-        button.addEventListener('click', () => {
-          void xr.requestSession('immersive-vr', {
-            optionalFeatures: ['local-floor', 'bounded-floor', 'layers'],
-          }).then((session) => gl.xr.setSession(session)).catch((error: unknown) => {
-            console.warn('Não foi possível iniciar a sessão VR:', error);
-          });
-        });
-        buttonHost.appendChild(button);
-      }).catch((error: unknown) => {
-        console.warn('Não foi possível verificar o suporte a WebXR:', error);
-      });
-    }
-
     return () => {
-      disposed = true;
+      onXrSessionStarterReady(null);
       gl.xr.removeEventListener('sessionstart', handleSessionStart);
       gl.xr.removeEventListener('sessionend', handleSessionEnd);
       removeXrExitControl();
-      button?.remove();
     };
-  }, [gl, scene, onXrActiveChange, onXrSessionChange]);
+  }, [gl, scene, onXrActiveChange, onXrSessionChange, onXrSessionStarterReady]);
 
   useEffect(() => {
     if (camera instanceof THREE.PerspectiveCamera) {

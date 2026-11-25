@@ -18,6 +18,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   const containerRef = useRef<HTMLDivElement>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const xrSessionRef = useRef<XRSession | null>(null);
+  const xrSessionStarterRef = useRef<(() => Promise<void>) | null>(null);
 
   const [videoState, setVideoState] = useState<VideoState>({
     isPlaying: false,
@@ -57,6 +58,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
 
   const handleXrSessionChange = useCallback((session: XRSession | null) => {
     xrSessionRef.current = session;
+  }, []);
+
+  const handleXrSessionStarterReady = useCallback((starter: (() => Promise<void>) | null) => {
+    xrSessionStarterRef.current = starter;
   }, []);
 
   const exitImmersive = useCallback(() => {
@@ -117,6 +122,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
       });
     }
   }, []);
+
+  const requestImmersiveView = useCallback(() => {
+    const startSession = xrSessionStarterRef.current;
+    if (!startSession) {
+      if (!document.fullscreenElement) toggleFullscreen();
+      return;
+    }
+
+    void startSession().catch((error: unknown) => {
+      console.warn('Não foi possível iniciar o modo imersivo:', error);
+      if (!document.fullscreenElement) toggleFullscreen();
+    });
+  }, [toggleFullscreen]);
 
   // Função para esconder os controles
   const startHideTimer = useCallback(() => {
@@ -327,9 +345,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
       });
     }
 
-    document.getElementById('dr360-vr-button')?.click();
+    requestImmersiveView();
     handleMouseMove();
-  }, [exitImmersive, handleMouseMove, settings.isVR]);
+  }, [exitImmersive, handleMouseMove, requestImmersiveView, settings.isVR]);
 
   const changeViewMode = useCallback((mode: ViewMode) => {
     setSettings(previous => ({ ...previous, viewMode: mode }));
@@ -337,13 +355,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
 
     if (settings.isVR) return;
 
-    const vrButton = document.getElementById('dr360-vr-button') as HTMLButtonElement | null;
-    if (vrButton && !vrButton.disabled) {
-      toggleVR();
-    } else if (!document.fullscreenElement) {
-      toggleFullscreen();
-    }
-  }, [handleMouseMove, settings.isVR, toggleFullscreen, toggleVR]);
+    requestImmersiveView();
+  }, [handleMouseMove, requestImmersiveView, settings.isVR]);
 
   const handleXrActiveChange = useCallback((active: boolean) => {
     if (active && hideTimerRef.current) clearTimeout(hideTimerRef.current);
@@ -429,6 +442,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
               quality={qualitySettings} 
               onXrActiveChange={handleXrActiveChange}
               onXrSessionChange={handleXrSessionChange}
+              onXrSessionStarterReady={handleXrSessionStarterReady}
             />
           </Canvas>
         ) : (
