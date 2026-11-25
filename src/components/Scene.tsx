@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useThree, useFrame, extend } from '@react-three/fiber';
 import { OrbitControls, DeviceOrientationControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
-import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { ViewMode, QualitySettings } from '../types';
 
 interface SceneProps {
@@ -107,7 +106,7 @@ const Scene: React.FC<SceneProps> = ({
     gl.xr.addEventListener('sessionend', handleSessionEnd);
 
     let disposed = false;
-    let button: HTMLElement | null = null;
+    let button: HTMLButtonElement | null = null;
     let xrExitTexture: THREE.CanvasTexture | null = null;
     const xrControllerCleanups: Array<() => void> = [];
     const buttonHost = gl.domElement.parentElement;
@@ -200,9 +199,18 @@ const Scene: React.FC<SceneProps> = ({
       xr.isSessionSupported('immersive-vr').then((supported) => {
         if (!supported || disposed) return;
 
-        button = VRButton.createButton(gl);
+        button = document.createElement('button');
         button.id = 'dr360-vr-button';
-        button.style.display = 'none';
+        button.type = 'button';
+        button.setAttribute('aria-hidden', 'true');
+        button.style.setProperty('display', 'none', 'important');
+        button.addEventListener('click', () => {
+          void xr.requestSession('immersive-vr', {
+            optionalFeatures: ['local-floor', 'bounded-floor', 'layers'],
+          }).then((session) => gl.xr.setSession(session)).catch((error: unknown) => {
+            console.warn('Não foi possível iniciar a sessão VR:', error);
+          });
+        });
         buttonHost.appendChild(button);
       }).catch((error: unknown) => {
         console.warn('Não foi possível verificar o suporte a WebXR:', error);
