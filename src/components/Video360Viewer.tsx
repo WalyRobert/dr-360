@@ -19,6 +19,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const xrSessionRef = useRef<XRSession | null>(null);
   const xrSessionStarterRef = useRef<(() => Promise<void>) | null>(null);
+  const userSelectedViewModeRef = useRef(false);
 
   const [videoState, setVideoState] = useState<VideoState>({
     isPlaying: false,
@@ -229,6 +230,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     video.setAttribute('playsinline', 'true');
     video.src = src;
     video.load();
+    userSelectedViewModeRef.current = false;
 
     const onLoadedMetadata = () => {
       setVideoState(prev => ({ ...prev, duration: video.duration }));
@@ -238,7 +240,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
       const detectedMode = aspectRatio >= 1.9 && aspectRatio <= 2.1
         ? ViewMode.Mode360
         : ViewMode.ModeFlat;
-      setSettings(prev => ({ ...prev, viewMode: detectedMode }));
+      if (!userSelectedViewModeRef.current) {
+        setSettings(prev => ({ ...prev, viewMode: detectedMode }));
+      }
       attemptPlay();
     };
     
@@ -350,6 +354,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   }, [exitImmersive, handleMouseMove, requestImmersiveView, settings.isVR]);
 
   const changeViewMode = useCallback((mode: ViewMode) => {
+    userSelectedViewModeRef.current = true;
     setSettings(previous => ({ ...previous, viewMode: mode }));
     handleMouseMove();
 

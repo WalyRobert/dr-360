@@ -163,8 +163,11 @@ const Controls: React.FC<ControlsProps> = ({
               {[ViewMode.Mode360, ViewMode.Mode180, ViewMode.Mode120].map((m) => (
                 <button 
                   key={m} 
+                  type="button"
                   onClick={() => onViewModeChange(m)} 
-                  className={`px-2 py-1 text-[7px] font-bold border rounded-none transition-all uppercase bg-transparent ${settings.viewMode === m ? 'border-dr-gold text-dr-gold shadow-gold-glow' : 'border-dr-gold/20 text-dr-gray hover:border-dr-gold/50'}`}
+                  aria-pressed={settings.viewMode === m}
+                  className={`min-h-11 min-w-12 px-3 py-2 text-[10px] font-bold border rounded-none transition-all uppercase bg-black/80 touch-manipulation ${settings.viewMode === m ? 'border-dr-gold text-dr-gold shadow-gold-glow' : 'border-dr-gold/30 text-dr-gray hover:border-dr-gold/70'}`}
+                  title={`Exibir vídeo em ${m} graus e entrar na visualização imersiva`}
                 >
                   {m}°
                 </button>
