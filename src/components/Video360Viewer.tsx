@@ -331,6 +331,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     handleMouseMove();
   }, [exitImmersive, handleMouseMove, settings.isVR]);
 
+  const changeViewMode = useCallback((mode: ViewMode) => {
+    setSettings(previous => ({ ...previous, viewMode: mode }));
+    handleMouseMove();
+
+    if (mode !== ViewMode.Mode360 || settings.isVR) return;
+
+    const vrButton = document.getElementById('dr360-vr-button') as HTMLButtonElement | null;
+    if (vrButton && !vrButton.disabled) {
+      toggleVR();
+    } else if (!document.fullscreenElement) {
+      toggleFullscreen();
+    }
+  }, [handleMouseMove, settings.isVR, toggleFullscreen, toggleVR]);
+
   const handleXrActiveChange = useCallback((active: boolean) => {
     if (active && hideTimerRef.current) clearTimeout(hideTimerRef.current);
     setSettings((previous) => ({ ...previous, isVR: active }));
@@ -462,7 +476,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
         onSpeedChange={changeSpeed}
         onLoopToggle={toggleLoop}
         onVRToggle={toggleVR}
-        onViewModeChange={(mode) => { setSettings(s => ({ ...s, viewMode: mode })); handleMouseMove(); }}
+        onViewModeChange={changeViewMode}
         onHeadTrackingToggle={requestHeadTracking}
         onZoom={handleZoom}
         onBack={handleBack}

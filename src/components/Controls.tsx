@@ -160,13 +160,13 @@ const Controls: React.FC<ControlsProps> = ({
             </div>
 
             <div className="flex items-center space-x-1.5">
-              {[ViewMode.Mode360, ViewMode.Mode180, ViewMode.Mode120, ViewMode.ModeFlat].map((m) => (
+              {[ViewMode.Mode360, ViewMode.Mode180, ViewMode.Mode120].map((m) => (
                 <button 
                   key={m} 
                   onClick={() => onViewModeChange(m)} 
                   className={`px-2 py-1 text-[7px] font-bold border rounded-none transition-all uppercase bg-transparent ${settings.viewMode === m ? 'border-dr-gold text-dr-gold shadow-gold-glow' : 'border-dr-gold/20 text-dr-gray hover:border-dr-gold/50'}`}
                 >
-                  {m === ViewMode.ModeFlat ? 'TELA' : `${m}°`}
+                  {m}°
                 </button>
               ))}
             </div>
