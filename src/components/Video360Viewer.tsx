@@ -335,7 +335,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     setSettings(previous => ({ ...previous, viewMode: mode }));
     handleMouseMove();
 
-    if (mode !== ViewMode.Mode360 || settings.isVR) return;
+    if (settings.isVR) return;
 
     const vrButton = document.getElementById('dr360-vr-button') as HTMLButtonElement | null;
     if (vrButton && !vrButton.disabled) {
