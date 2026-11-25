@@ -21,6 +21,8 @@ export interface PlayerSettings {
   isVR: boolean;
   zoom: number;
   headTracking: boolean;
+  poleCapsEnabled: boolean;
+  poleCapDiameter: number;
 }
 
 export interface QualitySettings {

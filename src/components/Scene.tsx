@@ -10,6 +10,8 @@ interface SceneProps {
   viewMode: ViewMode;
   zoom: number;
   headTracking: boolean;
+  poleCapsEnabled: boolean;
+  poleCapDiameter: number;
   quality: QualitySettings;
   onXrActiveChange: (active: boolean) => void;
   onXrSessionChange: (session: XRSession | null) => void;
@@ -74,6 +76,8 @@ const Scene: React.FC<SceneProps> = ({
   viewMode, 
   zoom, 
   headTracking, 
+  poleCapsEnabled,
+  poleCapDiameter,
   quality,
   onXrActiveChange,
   onXrSessionChange
@@ -318,6 +322,19 @@ const Scene: React.FC<SceneProps> = ({
         {/* @ts-ignore */}
         <videoMaterial ref={materialRef} side={THREE.BackSide} transparent={false} />
       </mesh>
+
+      {poleCapsEnabled && viewMode === ViewMode.Mode360 && (
+        <>
+          <mesh position={[0, 3, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+            <circleGeometry args={[poleCapDiameter / 2, 64]} />
+            <meshBasicMaterial color="#050505" side={THREE.DoubleSide} />
+          </mesh>
+          <mesh position={[0, -3, 0]} rotation={[Math.PI / 2, 0, 0]} renderOrder={1}>
+            <circleGeometry args={[poleCapDiameter / 2, 64]} />
+            <meshBasicMaterial color="#050505" side={THREE.DoubleSide} />
+          </mesh>
+        </>
+      )}
 
       {headTracking && !xrActive ? (
         <DeviceOrientationControls />

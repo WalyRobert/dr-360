@@ -30,6 +30,8 @@ interface ControlsProps {
   onDownload: () => void;
   onFileChange: (file: File) => void;
   onQualityChange: (q: QualitySettings) => void;
+  onPoleCapsToggle: () => void;
+  onPoleCapDiameterChange: (diameter: number) => void;
   onToggleFullscreen: () => void;
 }
 
@@ -55,11 +57,13 @@ const Controls: React.FC<ControlsProps> = ({
   onDownload,
   onFileChange,
   onQualityChange,
+  onPoleCapsToggle,
+  onPoleCapDiameterChange,
   onToggleFullscreen
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [activeTab, setActiveTab] = useState<'adjust' | 'quality'>('quality');
+  const [activeTab, setActiveTab] = useState<'adjust' | 'quality' | 'poles'>('quality');
 
   const formatTime = useCallback((time: number) => {
     const minutes = Math.floor(time / 60);
@@ -207,6 +211,7 @@ const Controls: React.FC<ControlsProps> = ({
         <div className="flex border-b border-dr-gold/10">
           <button onClick={() => setActiveTab('quality')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'quality' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Output</button>
           <button onClick={() => setActiveTab('adjust')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'adjust' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Color</button>
+          <button onClick={() => setActiveTab('poles')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'poles' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Polos</button>
         </div>
         <div className="p-6 space-y-4">
           {activeTab === 'quality' ? (
@@ -221,7 +226,7 @@ const Controls: React.FC<ControlsProps> = ({
                 </button>
               ))}
             </div>
-          ) : (
+          ) : activeTab === 'adjust' ? (
             <div className="space-y-3">
                {['brightness', 'contrast', 'saturation'].map((key) => (
                  <div key={key} className="space-y-1">
@@ -229,6 +234,37 @@ const Controls: React.FC<ControlsProps> = ({
                     <input type="range" min="-0.3" max="0.3" step="0.01" value={quality[key as keyof QualitySettings] as number} onChange={(e) => onQualityChange({...quality, [key]: parseFloat(e.target.value)})} className="w-full h-0.5 accent-dr-gold bg-dr-gray/10 appearance-none cursor-pointer" />
                  </div>
                ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <button
+                type="button"
+                onClick={onPoleCapsToggle}
+                aria-pressed={settings.poleCapsEnabled}
+                className={`w-full rounded-none border px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest transition-colors ${settings.poleCapsEnabled ? 'border-dr-gold text-dr-gold' : 'border-dr-gold/20 text-dr-gray'}`}
+              >
+                {settings.poleCapsEnabled ? 'Discos dos polos: ligados' : 'Discos dos polos: desligados'}
+              </button>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[8px] text-dr-gray uppercase">
+                  <span>Diâmetro</span>
+                  <span>{settings.poleCapDiameter.toFixed(1).replace('.', ',')} m</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.4"
+                  max="2"
+                  step="0.1"
+                  value={settings.poleCapDiameter}
+                  onChange={(e) => onPoleCapDiameterChange(parseFloat(e.target.value))}
+                  disabled={!settings.poleCapsEnabled}
+                  aria-label="Diâmetro dos discos dos polos em metros"
+                  className="w-full h-0.5 accent-dr-gold bg-dr-gray/10 appearance-none cursor-pointer disabled:opacity-40"
+                />
+                <p className="text-[8px] leading-relaxed text-dr-gray">
+                  Discos escuros cobrem as regiões superior e inferior no modo 360°.
+                </p>
+              </div>
             </div>
           )}
         </div>

@@ -36,6 +36,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     zoom: 75,
     headTracking: false,
     isVR: false,
+    poleCapsEnabled: true,
+    poleCapDiameter: 1,
   });
 
   const [qualitySettings, setQualitySettings] = useState<QualitySettings>({
@@ -401,6 +403,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
               viewMode={settings.viewMode} 
               zoom={settings.zoom} 
               headTracking={settings.headTracking} 
+              poleCapsEnabled={settings.poleCapsEnabled}
+              poleCapDiameter={settings.poleCapDiameter}
               quality={qualitySettings} 
               onXrActiveChange={handleXrActiveChange}
               onXrSessionChange={handleXrSessionChange}
@@ -458,6 +462,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
         onDownload={handleDownload}
         onFileChange={onFileChange}
         onQualityChange={(q) => { setQualitySettings(q); handleMouseMove(); }}
+        onPoleCapsToggle={() => { setSettings(s => ({ ...s, poleCapsEnabled: !s.poleCapsEnabled })); handleMouseMove(); }}
+        onPoleCapDiameterChange={(diameter) => { setSettings(s => ({ ...s, poleCapDiameter: diameter })); handleMouseMove(); }}
         onToggleFullscreen={toggleFullscreen}
       />
 
