@@ -113,10 +113,18 @@ const Scene: React.FC<SceneProps> = ({
 
     if (xr) {
       onXrSessionStarterReady(async () => {
+        // Keep the session request compatible with Quest Browser and other
+        // WebXR runtimes. The extra bounded-floor/layers features are not used
+        // by this scene and can make some runtimes reject the whole request.
         const session = await xr.requestSession('immersive-vr', {
-          optionalFeatures: ['local-floor', 'bounded-floor', 'layers'],
+          optionalFeatures: ['local-floor'],
         });
-        await gl.xr.setSession(session);
+        try {
+          await gl.xr.setSession(session);
+        } catch (error) {
+          await session.end().catch(() => undefined);
+          throw error;
+        }
       });
     } else {
       onXrSessionStarterReady(null);

@@ -130,7 +130,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     const startSession = xrSessionStarterRef.current;
     if (!startSession) {
       setImmersiveError('O navegador não disponibilizou uma sessão WebXR para esta página.');
-      if (!document.fullscreenElement) toggleFullscreen();
       return;
     }
 
@@ -140,9 +139,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
         ? `${error.name}: ${error.message}`
         : String(error);
       setImmersiveError(detail);
-      if (!document.fullscreenElement) toggleFullscreen();
     });
-  }, [toggleFullscreen]);
+  }, []);
 
   // Função para esconder os controles
   const startHideTimer = useCallback(() => {
