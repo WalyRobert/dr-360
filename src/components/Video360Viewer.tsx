@@ -54,6 +54,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   const [controlsVisible, setControlsVisible] = useState(true);
   const [needsInteraction, setNeedsInteraction] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [immersiveError, setImmersiveError] = useState<string | null>(null);
   const [textureKey, setTextureKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -125,14 +126,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   }, []);
 
   const requestImmersiveView = useCallback(() => {
+    setImmersiveError(null);
     const startSession = xrSessionStarterRef.current;
     if (!startSession) {
+      setImmersiveError('O navegador não disponibilizou uma sessão WebXR para esta página.');
       if (!document.fullscreenElement) toggleFullscreen();
       return;
     }
 
     void startSession().catch((error: unknown) => {
       console.warn('Não foi possível iniciar o modo imersivo:', error);
+      const detail = error instanceof Error
+        ? `${error.name}: ${error.message}`
+        : String(error);
+      setImmersiveError(detail);
       if (!document.fullscreenElement) toggleFullscreen();
     });
   }, [toggleFullscreen]);
@@ -365,6 +372,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
 
   const handleXrActiveChange = useCallback((active: boolean) => {
     if (active && hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    if (active) setImmersiveError(null);
     setSettings((previous) => ({ ...previous, isVR: active }));
     setControlsVisible(true);
   }, []);
@@ -506,6 +514,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
         onPoleCapDiameterChange={(diameter) => { setSettings(s => ({ ...s, poleCapDiameter: diameter })); handleMouseMove(); }}
         onToggleFullscreen={toggleFullscreen}
       />
+
+      {immersiveError && (
+        <div role="alert" className="absolute left-1/2 top-16 z-[80] w-[min(92%,36rem)] -translate-x-1/2 rounded border border-red-400/70 bg-black/95 p-4 text-sm text-white shadow-2xl">
+          <div className="mb-2 font-bold text-red-300">A imersão WebXR não iniciou</div>
+          <p className="mb-3 text-xs leading-relaxed text-white/80">
+            O vídeo foi colocado no modo {settings.viewMode}°, mas o navegador permaneceu na janela plana. Detalhe: {immersiveError}
+          </p>
+          <div className="flex gap-2">
+            <button type="button" onClick={requestImmersiveView} className="min-h-10 rounded border border-dr-gold/60 px-3 text-xs font-bold uppercase text-dr-gold">
+              Tentar imersão novamente
+            </button>
+            <button type="button" onClick={() => setImmersiveError(null)} className="min-h-10 rounded border border-white/20 px-3 text-xs text-white/70">
+              Fechar aviso
+            </button>
+          </div>
+        </div>
+      )}
 
       {isFullscreen && (
         <div className="absolute inset-x-0 top-0 z-[60] flex items-center justify-between gap-3 p-4 pointer-events-none">
