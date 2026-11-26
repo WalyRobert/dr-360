@@ -19,7 +19,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const xrSessionRef = useRef<XRSession | null>(null);
   const xrSessionStarterRef = useRef<(() => Promise<void>) | null>(null);
-  const userSelectedViewModeRef = useRef(false);
 
   const [videoState, setVideoState] = useState<VideoState>({
     isPlaying: false,
@@ -235,19 +234,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
     video.setAttribute('playsinline', 'true');
     video.src = src;
     video.load();
-    userSelectedViewModeRef.current = false;
 
     const onLoadedMetadata = () => {
       setVideoState(prev => ({ ...prev, duration: video.duration }));
-      const aspectRatio = video.videoWidth / video.videoHeight;
-      // 2:1 is the usual equirectangular layout for 360° video. Other
-      // aspect ratios default to a flat screen and can be changed manually.
-      const detectedMode = aspectRatio >= 1.9 && aspectRatio <= 2.1
-        ? ViewMode.Mode360
-        : ViewMode.ModeFlat;
-      if (!userSelectedViewModeRef.current) {
-        setSettings(prev => ({ ...prev, viewMode: detectedMode }));
-      }
       attemptPlay();
     };
     
@@ -359,7 +348,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, fileName, onBack, onFile
   }, [exitImmersive, handleMouseMove, requestImmersiveView, settings.isVR]);
 
   const changeViewMode = useCallback((mode: ViewMode) => {
-    userSelectedViewModeRef.current = true;
     setSettings(previous => ({ ...previous, viewMode: mode }));
     handleMouseMove();
 
