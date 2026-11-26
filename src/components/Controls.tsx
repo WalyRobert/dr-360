@@ -156,6 +156,15 @@ const Controls: React.FC<ControlsProps> = ({
                 >
                   <Square size={17} fill="currentColor" />
                 </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-9 w-9 text-dr-gold/80 hover:text-dr-gold hover:scale-110 transition-transform bg-transparent flex items-center justify-center"
+                  title="Abrir outro vídeo"
+                  aria-label="Abrir outro vídeo"
+                >
+                  <FileVideo size={17} />
+                </button>
               </div>
             </div>
 
