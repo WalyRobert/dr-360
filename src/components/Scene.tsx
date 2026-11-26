@@ -306,7 +306,7 @@ const Scene: React.FC<SceneProps> = ({
     const widthSegments = 128;
     const heightSegments = 64;
     if (viewMode === ViewMode.Mode180) return [radius, widthSegments, heightSegments, 0, Math.PI, 0, Math.PI];
-    if (viewMode === ViewMode.Mode120) return [radius, widthSegments, heightSegments, Math.PI / 3, Math.PI / 1.5, Math.PI / 4, Math.PI / 2];
+    if (viewMode === ViewMode.Mode120) return [radius, widthSegments, heightSegments, Math.PI / 6, Math.PI / 1.5, Math.PI / 4, Math.PI / 2];
     return [radius, widthSegments, heightSegments, 0, Math.PI * 2, 0, Math.PI];
   };
 
