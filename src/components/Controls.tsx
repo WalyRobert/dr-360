@@ -267,7 +267,7 @@ const Controls: React.FC<ControlsProps> = ({
               </button>
               <div className="space-y-2">
                 <div className="flex justify-between text-[8px] text-dr-gray uppercase">
-                  <span>Diâmetro</span>
+                  <span>Base inferior</span>
                   <span>{settings.poleCapDiameter.toFixed(1).replace('.', ',')} m</span>
                 </div>
                 <input
@@ -278,11 +278,11 @@ const Controls: React.FC<ControlsProps> = ({
                   value={settings.poleCapDiameter}
                   onChange={(e) => onPoleCapDiameterChange(parseFloat(e.target.value))}
                   disabled={!settings.poleCapsEnabled}
-                  aria-label="Diâmetro dos discos dos polos em metros"
+                  aria-label="Diâmetro da base inferior em metros"
                   className="w-full h-0.5 accent-dr-gold bg-dr-gray/10 appearance-none cursor-pointer disabled:opacity-40"
                 />
                 <p className="text-[8px] leading-relaxed text-dr-gray">
-                  Discos escuros cobrem as regiões superior e inferior nos modos 360° e 180°.
+                  Base superior fixa em 1,60 m. O ajuste altera apenas a base inferior.
                 </p>
               </div>
             </div>

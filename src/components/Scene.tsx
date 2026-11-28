@@ -343,7 +343,7 @@ const Scene: React.FC<SceneProps> = ({
       {poleCapsEnabled && (viewMode === ViewMode.Mode360 || viewMode === ViewMode.Mode180) && (
         <>
           <mesh position={[0, 3, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
-            <circleGeometry args={[poleCapDiameter / 2, 64]} />
+            <circleGeometry args={[0.8, 64]} />
             <meshBasicMaterial color="#050505" side={THREE.DoubleSide} />
           </mesh>
           <mesh position={[0, -3, 0]} rotation={[Math.PI / 2, 0, 0]} renderOrder={1}>
