@@ -66,7 +66,7 @@ const Controls: React.FC<ControlsProps> = ({
   const [activeTab, setActiveTab] = useState<'adjust' | 'quality' | 'poles'>('quality');
 
   useEffect(() => {
-    if (settings.viewMode !== ViewMode.Mode360 && activeTab === 'poles') {
+    if (settings.viewMode !== ViewMode.Mode360 && settings.viewMode !== ViewMode.Mode180 && activeTab === 'poles') {
       setActiveTab('quality');
     }
   }, [settings.viewMode, activeTab]);
@@ -229,7 +229,7 @@ const Controls: React.FC<ControlsProps> = ({
         <div className="flex border-b border-dr-gold/10">
           <button onClick={() => setActiveTab('quality')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'quality' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Output</button>
           <button onClick={() => setActiveTab('adjust')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'adjust' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Color</button>
-          {settings.viewMode === ViewMode.Mode360 && (
+          {(settings.viewMode === ViewMode.Mode360 || settings.viewMode === ViewMode.Mode180) && (
             <button onClick={() => setActiveTab('poles')} className={`flex-1 py-3 text-[8px] font-bold uppercase tracking-widest bg-transparent transition-colors ${activeTab === 'poles' ? 'text-dr-gold border-b border-dr-gold' : 'text-dr-gray hover:text-dr-gold'}`}>Polos</button>
           )}
         </div>
@@ -255,7 +255,7 @@ const Controls: React.FC<ControlsProps> = ({
                  </div>
                ))}
             </div>
-          ) : activeTab === 'poles' && settings.viewMode === ViewMode.Mode360 ? (
+          ) : activeTab === 'poles' && (settings.viewMode === ViewMode.Mode360 || settings.viewMode === ViewMode.Mode180) ? (
             <div className="space-y-4">
               <button
                 type="button"
@@ -282,7 +282,7 @@ const Controls: React.FC<ControlsProps> = ({
                   className="w-full h-0.5 accent-dr-gold bg-dr-gray/10 appearance-none cursor-pointer disabled:opacity-40"
                 />
                 <p className="text-[8px] leading-relaxed text-dr-gray">
-                  Discos escuros cobrem as regiões superior e inferior no modo 360°.
+                  Discos escuros cobrem as regiões superior e inferior nos modos 360° e 180°.
                 </p>
               </div>
             </div>
