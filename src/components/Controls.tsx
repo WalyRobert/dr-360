@@ -273,7 +273,7 @@ const Controls: React.FC<ControlsProps> = ({
                 <input
                   type="range"
                   min="0.4"
-                  max="2"
+                  max="4"
                   step="0.1"
                   value={settings.poleCapDiameter}
                   onChange={(e) => onPoleCapDiameterChange(parseFloat(e.target.value))}
